@@ -3,8 +3,8 @@
 #include "Engine/Core/TimeUtils.hpp"
 #include "Engine/Renderer/Camera2D.hpp"
 
-#include <memory>
-
+#include "Engine/Math/AABB2.hpp"
+#include "Engine/Math/OBB2.hpp"
 
 class Game {
 public:
@@ -29,12 +29,15 @@ private:
 
     void HandlePlayerInput(Camera2D& base_camera);
 
+    AABB2 _test_AABB2{};
+    OBB2 _test_OBB2{};
     mutable Camera2D _ui_camera{};
     float _cam_speed = 1.0f;
     float _max_shake_angle = 0.0f;
     float _max_shake_x = 0.0f;
     float _max_shake_y = 0.0f;
     bool _show_debug_window = false;
+    bool _do_overlap = false;
 
 };
 

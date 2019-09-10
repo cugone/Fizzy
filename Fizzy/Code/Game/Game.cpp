@@ -17,6 +17,8 @@
 
 void Game::Initialize() {
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
+    _test_AABB2 = AABB2::NEG_ONE_TO_ONE;
+    _test_OBB2 = OBB2::ZERO_TO_ONE;
 }
 
 void Game::BeginFrame() {
@@ -28,10 +30,20 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
         g_theApp->SetIsQuitting(true);
         return;
     }
+    //g_theInputSystem->SetCursorToWindowCenter(*g_theRenderer->GetOutput()->GetWindow());
+    auto coords = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+    _test_AABB2 = AABB2::NEG_ONE_TO_ONE;
+    _test_AABB2.AddPaddingToSides(50.0f, 50.0f);
+    _test_AABB2 += coords;
+
     Camera2D& base_camera = _ui_camera;
     HandleDebugInput(base_camera);
     HandlePlayerInput(base_camera);
     base_camera.Update(deltaSeconds);
+    g_theInputSystem->GetCursorScreenPosition();
+    _test_OBB2.RotateDegrees(45.0f * deltaSeconds.count());
+
+    _do_overlap = MathUtils::DoOBBsOverlap(_test_OBB2, _test_AABB2);
 }
 
 void Game::Render() const {
@@ -56,6 +68,20 @@ void Game::Render() const {
     _ui_camera.orientation_degrees = 0.0f;
     _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
     g_theRenderer->SetCamera(_ui_camera);
+
+    Matrix4 T = Matrix4::I;
+    Matrix4 R = Matrix4::I;
+    Matrix4 S = Matrix4::I;
+    Matrix4 M = T * R * S;
+    g_theRenderer->SetModelMatrix(M);
+    g_theRenderer->DrawAABB2(_test_AABB2, Rgba::Red, Rgba::NoAlpha);
+
+    T = Matrix4::CreateTranslationMatrix(Vector2::ONE * 300.0f);
+    R = Matrix4::Create2DRotationDegreesMatrix(_test_OBB2.orientationDegrees);
+    S = Matrix4::CreateScaleMatrix(Vector2::ONE * 100.0f);
+    M = T * R * S;
+    g_theRenderer->SetModelMatrix(M);
+    g_theRenderer->DrawOBB2(_test_OBB2.orientationDegrees, Rgba::Green, _do_overlap ? Rgba::Red : Rgba::NoAlpha);
 
 }
 
