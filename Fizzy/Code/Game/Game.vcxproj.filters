@@ -11,6 +11,18 @@
     <Filter Include="Data">
       <UniqueIdentifier>{e55b867b-04ce-4af6-8c4f-f1490f896af2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Data\Images">
+      <UniqueIdentifier>{3ac8c638-66fd-4b40-9de0-832bfc7f8463}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\Materials">
+      <UniqueIdentifier>{b9051351-9339-480f-aef3-6d0496a381e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\Shaders">
+      <UniqueIdentifier>{eceab498-2f4d-4dd0-ad01-381d6ab3d3c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\ShaderPrograms">
+      <UniqueIdentifier>{5c361708-925f-4575-bf22-84bb55d0f7f5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main_Win32.cpp">
