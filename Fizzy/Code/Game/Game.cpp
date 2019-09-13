@@ -120,13 +120,6 @@ void Game::Render() const {
     g_theRenderer->SetModelMatrix(Matrix4::I);
     g_theRenderer->DrawOBB2(_test2_OBB2, _do_overlap ? Rgba::White : Rgba::Green, Rgba::NoAlpha);
 
-    auto T = Matrix4::CreateTranslationMatrix(Vector2(2.0f, g_theRenderer->GetFont("System32")->GetLineHeight()));
-    auto R = Matrix4::I;
-    auto S = Matrix4::I;
-    auto M = T * R * S;
-    g_theRenderer->SetModelMatrix(M);
-    g_theRenderer->DrawTextLine(g_theRenderer->GetFont("System32"), _do_overlap ? "Yes" : "No");
-
 }
 
 void Game::EndFrame() {

@@ -31,8 +31,6 @@ private:
 
     OBB2 _test1_OBB2{};
     OBB2 _test2_OBB2{};
-    //AABB2 _test1_OBB2{};
-    //AABB2 _test2_OBB2{};
     mutable Camera2D _ui_camera{};
     float _cam_speed = 1.0f;
     float _max_shake_angle = 0.0f;
