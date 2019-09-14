@@ -7,6 +7,11 @@
 #include "Engine/Math/Disc2.hpp"
 #include "Engine/Math/OBB2.hpp"
 
+struct PhysicsObject {
+    OBB2 obb;
+    bool is_colliding = false;
+};
+
 class Game {
 public:
     Game() = default;
@@ -24,22 +29,24 @@ public:
 
 protected:
 private:
-    void HandleDebugInput(Camera2D& base_camera);
-    void HandleDebugKeyboardInput(Camera2D& base_camera);
-    void HandleDebugMouseInput(Camera2D& base_camera);
+    void ShowDebugWindow();
 
-    void HandlePlayerInput(Camera2D& base_camera);
+    void HandleDebugInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera);
+    void HandleDebugKeyboardInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera);
+    void HandleDebugMouseInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera);
 
-    OBB2 _test1_OBB2{};
-    OBB2 _test2_OBB2{};
+    void HandlePlayerInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera);
+
+    PhysicsObject _test1{};
+    PhysicsObject _test2{};
+    PhysicsObject _test3{};
     Disc2 _closest_point{};
     mutable Camera2D _ui_camera{};
     float _cam_speed = 1.0f;
     float _max_shake_angle = 0.0f;
     float _max_shake_x = 0.0f;
     float _max_shake_y = 0.0f;
+    float t = 0.5f;
     bool _show_debug_window = false;
-    bool _do_overlap = false;
-
 };
 

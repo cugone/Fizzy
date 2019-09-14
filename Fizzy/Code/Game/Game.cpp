@@ -18,12 +18,15 @@
 
 void Game::Initialize() {
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
-    _test1_OBB2.AddPaddingToSides(25.0f, 25.0f);
-    _test1_OBB2.Translate(Vector2(200.0f, 250.0f));
-    _test2_OBB2.AddPaddingToSides(25.0f, 25.0f);
-    _test2_OBB2.Translate(Vector2(300.0f, 250.0f));
-    _test1_OBB2.SetOrientationDegrees(0.0f);
-    _test2_OBB2.SetOrientationDegrees(0.0f);
+    _test1.obb.AddPaddingToSides(25.0f, 25.0f);
+    _test1.obb.Translate(Vector2(200.0f, 250.0f));
+    _test2.obb.AddPaddingToSides(25.0f, 25.0f);
+    _test2.obb.Translate(Vector2(400.0f, 250.0f));
+    _test3.obb.AddPaddingToSides(50.0f, 50.0f);
+    _test3.obb.Translate(Vector2(600.0f, 250.0f));
+    _test1.obb.SetOrientationDegrees(0.0f);
+    _test2.obb.SetOrientationDegrees(0.0f);
+    _test3.obb.SetOrientationDegrees(0.0f);
     _closest_point.radius = 5.0f;
 }
 
@@ -37,61 +40,29 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
         return;
     }
 
+    if(_show_debug_window) {
+        ShowDebugWindow();
+    }
+
     Camera2D& base_camera = _ui_camera;
-    HandleDebugInput(base_camera);
-    HandlePlayerInput(base_camera);
+    HandleDebugInput(deltaSeconds, base_camera);
+    HandlePlayerInput(deltaSeconds, base_camera);
     base_camera.Update(deltaSeconds);
 
-    if(g_theInputSystem->IsKeyDown(KeyCode::R)) {
-        _test2_OBB2.SetOrientationDegrees(0.0f);
-        _test1_OBB2.SetOrientationDegrees(0.0f);
-    }
+    _test2.obb = MathUtils::Interpolate(_test1.obb, _test3.obb, t);
 
-    float speed = 50.0f;
-    if(g_theInputSystem->IsKeyDown(KeyCode::D)) {
-        _test2_OBB2.Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::A)) {
-        _test2_OBB2.Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::W)) {
-        _test2_OBB2.Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::S)) {
-        _test2_OBB2.Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::Backspace)) {
-        _test2_OBB2.position = Vector2(225.0f, 225.0f);
-    }
-
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad6)) {
-        _test1_OBB2.Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad4)) {
-        _test1_OBB2.Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad8)) {
-        _test1_OBB2.Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad5)) {
-        _test1_OBB2.Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::Q)) {
-        _test2_OBB2.SetOrientationDegrees(_test2_OBB2.orientationDegrees - 45.0f * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::E)) {
-        _test2_OBB2.SetOrientationDegrees(_test2_OBB2.orientationDegrees + 45.0f * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad7)) {
-        _test1_OBB2.SetOrientationDegrees(_test1_OBB2.orientationDegrees - 45.0f * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad9)) {
-        _test1_OBB2.SetOrientationDegrees(_test1_OBB2.orientationDegrees + 45.0f * deltaSeconds.count());
-    }
-
-    _do_overlap = MathUtils::DoOBBsOverlap(_test1_OBB2, _test2_OBB2);
-    const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
-    _closest_point.center = MathUtils::CalcClosestPoint(window_pos, _test2_OBB2);
+    const auto mouse_coords = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+    const auto world_pos = Vector2{g_theRenderer->ConvertScreenToWorldCoords(mouse_coords)};
+    _test1.is_colliding = false;
+    _test2.is_colliding = false;
+    _test3.is_colliding = false;
+    _test1.is_colliding |= MathUtils::DoOBBsOverlap(_test1.obb, _test2.obb);
+    _test2.is_colliding |= MathUtils::DoOBBsOverlap(_test2.obb, _test1.obb);
+    _test3.is_colliding |= MathUtils::DoOBBsOverlap(_test3.obb, _test1.obb);
+    _test1.is_colliding |= MathUtils::DoOBBsOverlap(_test1.obb, _test3.obb);
+    _test2.is_colliding |= MathUtils::DoOBBsOverlap(_test2.obb, _test3.obb);
+    _test3.is_colliding |= MathUtils::DoOBBsOverlap(_test3.obb, _test2.obb);
+    _closest_point.center = MathUtils::CalcClosestPoint(world_pos, _test3.obb);
 }
 
 void Game::Render() const {
@@ -111,21 +82,26 @@ void Game::Render() const {
     auto ui_leftBottom = Vector2{ -ui_view_half_extents.x, ui_view_half_extents.y };
     auto ui_rightTop = Vector2{ ui_view_half_extents.x, -ui_view_half_extents.y };
     auto ui_nearFar = Vector2{ 0.0f, 1.0f };
+    _ui_camera.position = ui_view_half_extents;
     _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
     g_theRenderer->SetCamera(_ui_camera);
 
     g_theRenderer->DrawAxes(static_cast<float>(std::max(ui_view_extents.x, ui_view_extents.y)), false);
 
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
-    g_theRenderer->DrawOBB2(_test1_OBB2, _do_overlap ? Rgba::White : Rgba::Red, Rgba::NoAlpha);
-    g_theRenderer->DrawOBB2(_test2_OBB2, _do_overlap ? Rgba::White : Rgba::Green, Rgba::NoAlpha);
-    g_theRenderer->DrawFilledCircle2D(_closest_point.center, _closest_point.radius);
+    g_theRenderer->DrawOBB2(_test1.obb, _test1.is_colliding ? Rgba::Red : Rgba::White, Rgba::NoAlpha);
+    g_theRenderer->DrawOBB2(_test2.obb, _test2.is_colliding ? Rgba::Blue : Rgba::White, Rgba::NoAlpha);
+    g_theRenderer->DrawOBB2(_test3.obb, _test3.is_colliding ? Rgba::Green : Rgba::White, Rgba::NoAlpha);
+    g_theRenderer->DrawFilledCircle2D(_closest_point);
 
     const auto f = g_theRenderer->GetFont("System32");
     const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+    const auto world_pos = g_theRenderer->ConvertScreenToWorldCoords(window_pos);
     const auto T = Matrix4::CreateTranslationMatrix(Vector2{5.0f, f->GetLineHeight()});
     g_theRenderer->SetModelMatrix(T);
-    g_theRenderer->DrawTextLine(g_theRenderer->GetFont("System32"), StringUtils::to_string(window_pos));
+    std::ostringstream ss;
+    ss << "Screen: " << window_pos << '\n' << "World: " << world_pos;
+    g_theRenderer->DrawMultilineText(g_theRenderer->GetFont("System32"), ss.str());
 
 }
 
@@ -133,16 +109,70 @@ void Game::EndFrame() {
     /* DO NOTHING */
 }
 
-void Game::HandlePlayerInput(Camera2D& /*base_camera*/) {
-    /* DO NOTHING */
+void Game::HandlePlayerInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& /*base_camera*/) {
+
+    if(g_theInputSystem->IsKeyDown(KeyCode::R)) {
+        _test1.obb.SetOrientationDegrees(0.0f);
+        _test3.obb.SetOrientationDegrees(0.0f);
+    }
+
+    float speed = 50.0f;
+    if(g_theInputSystem->IsKeyDown(KeyCode::D)) {
+        _test3.obb.Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::A)) {
+        _test3.obb.Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::W)) {
+        _test3.obb.Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::S)) {
+        _test3.obb.Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::Backspace)) {
+        _test3.obb.position = Vector2(225.0f, 225.0f);
+    }
+
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad6)) {
+        _test1.obb.Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad4)) {
+        _test1.obb.Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad8)) {
+        _test1.obb.Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad5)) {
+        _test1.obb.Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::Q)) {
+        _test3.obb.SetOrientationDegrees(_test3.obb.orientationDegrees - 45.0f * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::E)) {
+        _test3.obb.SetOrientationDegrees(_test3.obb.orientationDegrees + 45.0f * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad7)) {
+        _test1.obb.SetOrientationDegrees(_test1.obb.orientationDegrees - 45.0f * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad9)) {
+        _test1.obb.SetOrientationDegrees(_test1.obb.orientationDegrees + 45.0f * deltaSeconds.count());
+    }
+
 }
 
-void Game::HandleDebugInput(Camera2D& base_camera) {
-    HandleDebugKeyboardInput(base_camera);
-    HandleDebugMouseInput(base_camera);
+void Game::ShowDebugWindow() {
+    if(ImGui::Begin("Debug Window", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::SliderFloat("Interp", &t, 0.0f, 1.0f);
+    }
+    ImGui::End();
 }
 
-void Game::HandleDebugKeyboardInput(Camera2D& base_camera) {
+void Game::HandleDebugInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera) {
+    HandleDebugKeyboardInput(deltaSeconds, base_camera);
+    HandleDebugMouseInput(deltaSeconds, base_camera);
+}
+
+void Game::HandleDebugKeyboardInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera) {
     if(g_theUISystem->GetIO().WantCaptureKeyboard) {
         return;
     }
@@ -153,20 +183,20 @@ void Game::HandleDebugKeyboardInput(Camera2D& base_camera) {
         g_theUISystem->ToggleImguiDemoWindow();
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::I)) {
-        base_camera.Translate(-Vector2::Y_AXIS * 10.0f);
+        base_camera.Translate(-Vector2::Y_AXIS * 10.0f * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::J)) {
-        base_camera.Translate(-Vector2::X_AXIS * 10.0f);
+        base_camera.Translate(-Vector2::X_AXIS * 10.0f * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::K)) {
-        base_camera.Translate(Vector2::Y_AXIS * 10.0f);
+        base_camera.Translate(Vector2::Y_AXIS * 10.0f * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::L)) {
-        base_camera.Translate(Vector2::X_AXIS * 10.0f);
+        base_camera.Translate(Vector2::X_AXIS * 10.0f * deltaSeconds.count());
     }
 }
 
-void Game::HandleDebugMouseInput(Camera2D& /*base_camera*/) {
+void Game::HandleDebugMouseInput(TimeUtils::FPSeconds /*deltaSeconds*/, Camera2D& /*base_camera*/) {
     if(g_theUISystem->GetIO().WantCaptureMouse) {
         return;
     }
