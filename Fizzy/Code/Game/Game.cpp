@@ -87,8 +87,8 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
     if(g_theInputSystem->IsKeyDown(KeyCode::NumPad9)) {
         _test1_OBB2.SetOrientationDegrees(_test1_OBB2.orientationDegrees + 45.0f * deltaSeconds.count());
     }
-    _test1_OBB2.SetOrientationDegrees(_test1_OBB2.orientationDegrees + 45.0f * deltaSeconds.count());
-    _do_overlap = MathUtils::DoOBBsOverlap(_test2_OBB2, _test1_OBB2);
+
+    _do_overlap = MathUtils::DoOBBsOverlap(_test1_OBB2, _test2_OBB2);
 }
 
 void Game::Render() const {
