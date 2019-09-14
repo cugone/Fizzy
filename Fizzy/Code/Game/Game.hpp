@@ -4,6 +4,7 @@
 #include "Engine/Renderer/Camera2D.hpp"
 
 #include "Engine/Math/AABB2.hpp"
+#include "Engine/Math/Disc2.hpp"
 #include "Engine/Math/OBB2.hpp"
 
 class Game {
@@ -31,6 +32,7 @@ private:
 
     OBB2 _test1_OBB2{};
     OBB2 _test2_OBB2{};
+    Disc2 _closest_point{};
     mutable Camera2D _ui_camera{};
     float _cam_speed = 1.0f;
     float _max_shake_angle = 0.0f;

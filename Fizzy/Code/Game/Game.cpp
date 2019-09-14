@@ -24,6 +24,7 @@ void Game::Initialize() {
     _test2_OBB2.Translate(Vector2(300.0f, 250.0f));
     _test1_OBB2.SetOrientationDegrees(0.0f);
     _test2_OBB2.SetOrientationDegrees(0.0f);
+    _closest_point.radius = 5.0f;
 }
 
 void Game::BeginFrame() {
@@ -89,6 +90,8 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
     }
 
     _do_overlap = MathUtils::DoOBBsOverlap(_test1_OBB2, _test2_OBB2);
+    const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+    _closest_point.center = MathUtils::CalcClosestPoint(window_pos, _test2_OBB2);
 }
 
 void Game::Render() const {
@@ -114,11 +117,15 @@ void Game::Render() const {
     g_theRenderer->DrawAxes(static_cast<float>(std::max(ui_view_extents.x, ui_view_extents.y)), false);
 
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
-    g_theRenderer->SetModelMatrix(Matrix4::I);
     g_theRenderer->DrawOBB2(_test1_OBB2, _do_overlap ? Rgba::White : Rgba::Red, Rgba::NoAlpha);
-
-    g_theRenderer->SetModelMatrix(Matrix4::I);
     g_theRenderer->DrawOBB2(_test2_OBB2, _do_overlap ? Rgba::White : Rgba::Green, Rgba::NoAlpha);
+    g_theRenderer->DrawFilledCircle2D(_closest_point.center, _closest_point.radius);
+
+    const auto f = g_theRenderer->GetFont("System32");
+    const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+    const auto T = Matrix4::CreateTranslationMatrix(Vector2{5.0f, f->GetLineHeight()});
+    g_theRenderer->SetModelMatrix(T);
+    g_theRenderer->DrawTextLine(g_theRenderer->GetFont("System32"), StringUtils::to_string(window_pos));
 
 }
 
