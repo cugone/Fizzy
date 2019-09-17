@@ -15,6 +15,7 @@ class Console;
 class InputSystem;
 class AudioSystem;
 class UISystem;
+class PhysicsSystem;
 
 class App : public EngineSubsystem {
 public:
@@ -56,6 +57,7 @@ private:
     std::unique_ptr<FileLogger> _theFileLogger{};
     std::unique_ptr<Config> _theConfig{};
     std::unique_ptr<Renderer> _theRenderer{};
+	std::unique_ptr<PhysicsSystem> _thePhysicsSystem{};
     std::unique_ptr<UISystem> _theUI{};
     std::unique_ptr<Console> _theConsole{};
     std::unique_ptr<InputSystem> _theInputSystem{};

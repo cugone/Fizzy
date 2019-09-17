@@ -8,6 +8,7 @@ Config* g_theConfig = nullptr;
 UISystem* g_theUISystem = nullptr;
 InputSystem* g_theInputSystem = nullptr;
 AudioSystem* g_theAudioSystem = nullptr;
+PhysicsSystem* g_thePhysicsSystem = nullptr;
 App* g_theApp = nullptr;
 Game* g_theGame = nullptr;
 EngineSubsystem* g_theSubsystemHead = nullptr;

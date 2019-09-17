@@ -46,6 +46,7 @@ App::App(const std::string& cmdString)
     , _theFileLogger{std::make_unique<FileLogger>(*_theJobSystem.get(), "game")}
     , _theConfig{ std::make_unique<Config>(KeyValueParser{cmdString}) }
     , _theRenderer{std::make_unique<Renderer>(static_cast<unsigned int>(GRAPHICS_OPTION_WINDOW_WIDTH), static_cast<unsigned int>(GRAPHICS_OPTION_WINDOW_HEIGHT)) }
+    , _thePhysicsSystem{std::make_unique<PhysicsSystem>() }
     , _theUI{std::make_unique<UISystem>(_theRenderer.get())}
     , _theConsole{ std::make_unique<Console>(_theRenderer.get()) }
     , _theInputSystem{ std::make_unique<InputSystem>() }
@@ -66,6 +67,7 @@ void App::SetupEngineSystemPointers() {
     g_theFileLogger = _theFileLogger.get();
     g_theConfig = _theConfig.get();
     g_theRenderer = _theRenderer.get();
+    g_thePhysicsSystem = _thePhysicsSystem.get();
     g_theUISystem = _theUI.get();
     g_theConsole = _theConsole.get();
     g_theInputSystem = _theInputSystem.get();
