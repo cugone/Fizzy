@@ -46,7 +46,7 @@ App::App(const std::string& cmdString)
     , _theFileLogger{std::make_unique<FileLogger>(*_theJobSystem.get(), "game")}
     , _theConfig{ std::make_unique<Config>(KeyValueParser{cmdString}) }
     , _theRenderer{std::make_unique<Renderer>(static_cast<unsigned int>(GRAPHICS_OPTION_WINDOW_WIDTH), static_cast<unsigned int>(GRAPHICS_OPTION_WINDOW_HEIGHT)) }
-    , _thePhysicsSystem{std::make_unique<PhysicsSystem>() }
+    , _thePhysicsSystem{std::make_unique<PhysicsSystem>(*_theRenderer.get()) }
     , _theUI{std::make_unique<UISystem>(_theRenderer.get())}
     , _theConsole{ std::make_unique<Console>(_theRenderer.get()) }
     , _theInputSystem{ std::make_unique<InputSystem>() }
@@ -92,12 +92,14 @@ void App::Initialize() {
     g_theInputSystem->Initialize();
     g_theConsole->Initialize();
     g_theAudioSystem->Initialize();
+    g_thePhysicsSystem->Initialize();
     g_theGame->Initialize();
 }
 
 void App::BeginFrame() {
     g_theJobSystem->BeginFrame();
     g_theUISystem->BeginFrame();
+    g_thePhysicsSystem->BeginFrame();
     g_theInputSystem->BeginFrame();
     g_theConsole->BeginFrame();
     g_theAudioSystem->BeginFrame();
@@ -110,12 +112,14 @@ void App::Update(TimeUtils::FPSeconds deltaSeconds) {
     g_theInputSystem->Update(deltaSeconds);
     g_theConsole->Update(deltaSeconds);
     g_theAudioSystem->Update(deltaSeconds);
+    g_thePhysicsSystem->Update(deltaSeconds);
     g_theGame->Update(deltaSeconds);
     g_theRenderer->Update(deltaSeconds);
 }
 
 void App::Render() const {
     g_theGame->Render();
+    g_thePhysicsSystem->Render();
     g_theUISystem->Render();
     g_theConsole->Render();
     g_theAudioSystem->Render();
@@ -125,6 +129,7 @@ void App::Render() const {
 
 void App::EndFrame() {
     g_theUISystem->EndFrame();
+    g_thePhysicsSystem->EndFrame();
     g_theGame->EndFrame();
     g_theConsole->EndFrame();
     g_theAudioSystem->EndFrame();
