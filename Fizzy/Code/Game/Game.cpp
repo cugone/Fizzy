@@ -67,48 +67,72 @@ void Game::HandlePlayerInput_Physics(TimeUtils::FPSeconds /*deltaSeconds*/, Came
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::Enter)) {
         const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
-        const auto displacement = _bodies[0].transform.GetTranslation().GetXY() - window_pos;
+        const auto displacement = _bodies[0].GetPosition() - window_pos;
         const auto dir = displacement.GetNormalize();
         const auto magnitude = 10000.0f;
         _bodies[0].ApplyForce(dir * magnitude);
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::L)) {
         const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
-        const auto displacement = _bodies[0].transform.GetTranslation().GetXY() - window_pos;
+        const auto displacement = _bodies[0].GetPosition() - window_pos;
         const auto dir = displacement.GetNormalize();
         const auto magnitude = 10000.0f;
+        _bodies[0].ApplyForceAt(window_pos, dir * magnitude);
+    }
+
+    if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
+        const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+        const auto displacement = _bodies[0].GetPosition() - window_pos;
+        const auto dir = displacement.GetNormalize();
+        const auto magnitude = 1000.0f;
         _bodies[0].ApplyForceAt(window_pos, dir * magnitude);
     }
 }
 
 void Game::HandlePlayerInput_OBBs(TimeUtils::FPSeconds deltaSeconds, Camera2D& /*base_camera*/) {
-    auto& obb = _obbs[0];
     if(g_theInputSystem->IsKeyDown(KeyCode::R)) {
         Reset_OBBS();
     }
 
     float speed = 100.0f;
+    float angular_speed = 45.0f;
     if(g_theInputSystem->IsKeyDown(KeyCode::D)) {
-        obb.Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
+        _obbs[0].Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::A)) {
-        obb.Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
+        _obbs[0].Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::W)) {
-        obb.Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
+        _obbs[0].Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::S)) {
-        obb.Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
+        _obbs[0].Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::Backspace)) {
-        obb.position = Vector2(225.0f, 225.0f);
-    }
-
     if(g_theInputSystem->IsKeyDown(KeyCode::Q)) {
-        obb.SetOrientationDegrees(obb.orientationDegrees - 45.0f * deltaSeconds.count());
+        _obbs[0].SetOrientationDegrees(_obbs[0].orientationDegrees - angular_speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::E)) {
-        obb.SetOrientationDegrees(obb.orientationDegrees + 45.0f * deltaSeconds.count());
+        _obbs[0].SetOrientationDegrees(_obbs[0].orientationDegrees + angular_speed * deltaSeconds.count());
+    }
+
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad6)) {
+        _obbs[1].Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad4)) {
+        _obbs[1].Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad8)) {
+        _obbs[1].Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad5)) {
+        _obbs[1].Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
+    }
+
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad7)) {
+        _obbs[1].SetOrientationDegrees(_obbs[1].orientationDegrees - angular_speed * deltaSeconds.count());
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad9)) {
+        _obbs[1].SetOrientationDegrees(_obbs[1].orientationDegrees + angular_speed * deltaSeconds.count());
     }
 
 }
