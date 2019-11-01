@@ -28,16 +28,14 @@ void Game::BeginFrame() {
         OnEnterState(_cur_state);
     }
     switch(_cur_state) {
-    case 0: BeginFrame_OBBs(); break;
-    case 1: BeginFrame_Physics(); break;
+    case 0: BeginFrame_Physics(); break;
     default: ERROR_AND_DIE("BEGIN FRAME UNDEFINED GAME STATE"); break;
     }
 }
 
 void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
     switch(_cur_state) {
-    case 0: Update_OBBs(deltaSeconds); break;
-    case 1: Update_Physics(deltaSeconds); break;
+    case 0: Update_Physics(deltaSeconds); break;
     default: ERROR_AND_DIE("UPDATE UNDEFINED GAME STATE"); break;
     }
 }
@@ -45,96 +43,41 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
 void Game::Render() const {
     RenderCommon();
     switch(_cur_state) {
-    case 0: Render_OBBs(); break;
-    case 1: Render_Physics(); break;
+    case 0: Render_Physics(); break;
     default: ERROR_AND_DIE("RENDER UNDEFINED GAME STATE"); break;
     }
 }
 
 void Game::EndFrame() {
     switch(_cur_state) {
-    case 0: EndFrame_OBBs(); break;
-    case 1: EndFrame_Physics(); break;
+    case 0: EndFrame_Physics(); break;
     default: ERROR_AND_DIE("ENDFRAME UNDEFINED GAME STATE"); break;
     }
 }
 
 void Game::HandlePlayerInput_Physics(TimeUtils::FPSeconds /*deltaSeconds*/, Camera2D& /*base_camera*/) {
+    if(g_theUISystem->GetIO().WantCaptureMouse) {
+        return;
+    }
+    if(g_theUISystem->GetIO().WantCaptureKeyboard) {
+        return;
+    }
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::G)) {
         for(auto& b : _bodies) {
             b.EnableGravity(!b.IsGravityEnabled());
         }
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::Enter)) {
-        const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
+        const auto window_pos = g_theInputSystem->GetMouseCoords();
         const auto displacement = _bodies[0].GetPosition() - window_pos;
         const auto dir = displacement.GetNormalize();
         const auto magnitude = 10000.0f;
         _bodies[0].ApplyForce(dir * magnitude);
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::L)) {
-        const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
-        const auto displacement = _bodies[0].GetPosition() - window_pos;
-        const auto dir = displacement.GetNormalize();
-        const auto magnitude = 10000.0f;
-        _bodies[0].ApplyForceAt(window_pos, dir * magnitude);
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+        const auto mouse_pos = g_theInputSystem->GetMouseCoords();
+        _new_bodies.push_back(mouse_pos);
     }
-
-    if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
-        const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
-        const auto displacement = _bodies[0].GetPosition() - window_pos;
-        const auto dir = displacement.GetNormalize();
-        const auto magnitude = 1000.0f;
-        _bodies[0].ApplyForceAt(window_pos, dir * magnitude);
-    }
-}
-
-void Game::HandlePlayerInput_OBBs(TimeUtils::FPSeconds deltaSeconds, Camera2D& /*base_camera*/) {
-    if(g_theInputSystem->IsKeyDown(KeyCode::R)) {
-        Reset_OBBS();
-    }
-
-    float speed = 100.0f;
-    float angular_speed = 45.0f;
-    if(g_theInputSystem->IsKeyDown(KeyCode::D)) {
-        _obbs[0].Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::A)) {
-        _obbs[0].Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::W)) {
-        _obbs[0].Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::S)) {
-        _obbs[0].Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::Q)) {
-        _obbs[0].SetOrientationDegrees(_obbs[0].orientationDegrees - angular_speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::E)) {
-        _obbs[0].SetOrientationDegrees(_obbs[0].orientationDegrees + angular_speed * deltaSeconds.count());
-    }
-
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad6)) {
-        _obbs[1].Translate(Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad4)) {
-        _obbs[1].Translate(-Vector2::X_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad8)) {
-        _obbs[1].Translate(-Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad5)) {
-        _obbs[1].Translate(Vector2::Y_AXIS * speed * deltaSeconds.count());
-    }
-
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad7)) {
-        _obbs[1].SetOrientationDegrees(_obbs[1].orientationDegrees - angular_speed * deltaSeconds.count());
-    }
-    if(g_theInputSystem->IsKeyDown(KeyCode::NumPad9)) {
-        _obbs[1].SetOrientationDegrees(_obbs[1].orientationDegrees + angular_speed * deltaSeconds.count());
-    }
-
 }
 
 void Game::ChangeState(int newState) {
@@ -143,87 +86,54 @@ void Game::ChangeState(int newState) {
 
 void Game::OnEnterState(int state) {
     switch(state) {
-    case 0: OnEnter_OBBs(); break;
-    case 1: OnEnter_Physics(); break;
+    case 0: OnEnter_Physics(); break;
     default: ERROR_AND_DIE("ON ENTER UNDEFINED GAME STATE") break;
     }
 }
 
 void Game::OnExitState(int state) {
     switch(state) {
-    case 0: OnExit_OBBs(); break;
-    case 1: OnExit_Physics(); break;
+    case 0: OnExit_Physics(); break;
     default: ERROR_AND_DIE("ON ENTER UNDEFINED GAME STATE") break;
     }
 }
 
-void Game::OnEnter_OBBs() {
-    Reset_OBBS();
-}
-
 void Game::OnEnter_Physics() {
-    _bodies.resize(2);
-    float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x) - 200.0f;
-    for(int i = 0; i < 2; ++i) {
-        float x = std::fmod((i + 1) * 200.0f, width);
-        float y = 250.0f;
-        _bodies[i] = RigidBody{ { PhysicsMaterial{}
+    float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x) - 100.0f;
+    //float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y) - 200.0f;
+    _bodies.reserve(20);
+    for(int i = 0; i < 20; ++i) {
+        float x = 100.0f + std::fmod((i + 1) * 200.0f, width);
+        float y = 50.0f + ((200.0f * i) / width);
+        _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
                     ,Vector2(x, y)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    ,OBB2(Vector2(x, y), Vector2::ONE * 50.0f, 0.0f)
-                    } };
-        _bodies[i].EnableGravity(false);
-        g_thePhysicsSystem->AddObject(_bodies[i]);
+                    , std::move(std::make_unique<ColliderCircle>(Vector2(x, y), 25.0f))
+                    } });
+        _bodies.back().EnableGravity(false);
     }
+    std::vector<RigidBody*> body_ptrs(_bodies.size());
+    for(std::size_t i = 0u; i < _bodies.size(); ++i) {
+        body_ptrs[i] = &_bodies[i];
+    }
+    g_thePhysicsSystem->AddObjects(body_ptrs);
+    g_thePhysicsSystem->SetWorldDescription({AABB2(-Vector2(g_theRenderer->GetOutput()->GetDimensions()), Vector2(g_theRenderer->GetOutput()->GetDimensions())) });
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
 
-void Game::OnExit_OBBs() {
-    _obbs.clear();
-}
-
 void Game::OnExit_Physics() {
     for(const auto& b : _bodies) {
-        g_thePhysicsSystem->RemoveObject(b);
+        g_thePhysicsSystem->RemoveObject(&b);
     }
     g_thePhysicsSystem->DebugShowCollision(false);
     g_thePhysicsSystem->Enable(false);
     _bodies.clear();
 }
 
-void Game::BeginFrame_OBBs() {
-    for(auto& b : _obbs_colliding) {
-        b = false;
-    }
-}
-
 void Game::BeginFrame_Physics() {
     /* DO NOTHING */
-}
-
-void Game::Update_OBBs(TimeUtils::FPSeconds deltaSeconds) {
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
-        g_theApp->SetIsQuitting(true);
-        return;
-    }
-    g_theRenderer->UpdateGameTime(deltaSeconds);
-    if(_show_debug_window) {
-        ShowDebugWindow();
-    }
-
-    Camera2D& base_camera = _ui_camera;
-    HandleDebugInput(deltaSeconds, base_camera);
-    HandlePlayerInput_OBBs(deltaSeconds, base_camera);
-    base_camera.Update(deltaSeconds);
-
-    for(auto i = 0; i < _obbs.size(); ++i) {
-        for(auto j = i + 1; j < _obbs.size(); ++j) {
-            _obbs_colliding[i] = MathUtils::DoOBBsOverlap(_obbs[i], _obbs[j]);
-            _obbs_colliding[j] = MathUtils::DoOBBsOverlap(_obbs[i], _obbs[j]);
-        }
-    }
 }
 
 void Game::Update_Physics(TimeUtils::FPSeconds deltaSeconds) {
@@ -231,6 +141,8 @@ void Game::Update_Physics(TimeUtils::FPSeconds deltaSeconds) {
         g_theApp->SetIsQuitting(true);
         return;
     }
+    g_thePhysicsSystem->DebugShowWorldPartition(_show_world_partition);
+    g_thePhysicsSystem->DebugShowCollision(_show_collision);
     g_theRenderer->UpdateGameTime(deltaSeconds);
     if(_show_debug_window) {
         ShowDebugWindow();
@@ -240,15 +152,6 @@ void Game::Update_Physics(TimeUtils::FPSeconds deltaSeconds) {
     HandleDebugInput(deltaSeconds, base_camera);
     HandlePlayerInput_Physics(deltaSeconds, base_camera);
     base_camera.Update(deltaSeconds);
-}
-
-void Game::Render_OBBs() const {
-    RenderCommon();
-
-    for(int i = 0; i < _obbs.size(); ++i) {
-        const auto& obb = _obbs[i];
-        g_theRenderer->DrawOBB2(obb, _obbs_colliding[i] ? Rgba::Red : Rgba::White);
-    }
 }
 
 void Game::RenderCommon() const {
@@ -277,37 +180,38 @@ void Game::RenderCommon() const {
 }
 
 void Game::Render_Physics() const {
-    const auto window_pos = g_theInputSystem->GetCursorWindowPosition(*g_theRenderer->GetOutput()->GetWindow());
-    const auto closest_point = MathUtils::CalcClosestPoint(window_pos, _bodies[0].GetCollider());
-    g_theRenderer->DrawFilledCircle2D(closest_point, 10.0f);
-}
-
-void Game::EndFrame_OBBs() {
     /* DO NOTHING */
 }
 
 void Game::EndFrame_Physics() {
-    /* DO NOTHING */
+    for(const auto& pos : _new_bodies) {
+        _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
+            ,pos
+            ,Vector2::ZERO
+            ,Vector2::ZERO
+            , std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
+            } });
+        g_thePhysicsSystem->AddObject(&_bodies.back());
+    }
+    _new_bodies.clear();
 }
 
 void Game::ShowDebugWindow() {
-    if(!ImGui::Begin("Debug Window", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::End();
+    if(ImGui::Begin("Debug Window", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Checkbox("Show Quadtree", &_show_world_partition);
+        ImGui::Checkbox("Show Collision", &_show_collision);
+        if(!_bodies.empty()) {
+            const auto [distance, is_valid] = GJKDistance(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
+            if(is_valid) {
+                ImGui::Text("GJKDistance: %f", distance);
+            } else {
+                ImGui::Text("GJKDistance: Invalid");
+            }
+        } else {
+            ImGui::Text("GJKDistance: Invalid");
+        }
     }
     ImGui::End();
-}
-
-void Game::Reset_OBBS() {
-    _obbs.resize(2);
-    _obbs_colliding.resize(2);
-    for(int i = 0; i < 2; ++i) {
-        float x = (i + 1) * 200.0f;
-        float y = 250.0f;
-        _obbs[i] = OBB2(Vector2(x, y), Vector2::ONE * 50.0f, 0.0f);
-    }
-    for(auto& b : _obbs_colliding) {
-        b = false;
-    }
 }
 
 void Game::HandleDebugInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera) {
@@ -329,16 +233,16 @@ void Game::HandleDebugKeyboardInput(TimeUtils::FPSeconds deltaSeconds, Camera2D&
         g_theUISystem->ToggleImguiDemoWindow();
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::I)) {
-        base_camera.Translate(-Vector2::Y_AXIS * 10.0f * deltaSeconds.count());
+        base_camera.Translate(-Vector2::Y_AXIS * _cam_speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::J)) {
-        base_camera.Translate(-Vector2::X_AXIS * 10.0f * deltaSeconds.count());
+        base_camera.Translate(-Vector2::X_AXIS * _cam_speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::K)) {
-        base_camera.Translate(Vector2::Y_AXIS * 10.0f * deltaSeconds.count());
+        base_camera.Translate(Vector2::Y_AXIS * _cam_speed * deltaSeconds.count());
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::L)) {
-        base_camera.Translate(Vector2::X_AXIS * 10.0f * deltaSeconds.count());
+        base_camera.Translate(Vector2::X_AXIS * _cam_speed * deltaSeconds.count());
     }
 }
 
