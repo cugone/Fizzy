@@ -99,19 +99,31 @@ void Game::OnExitState(int state) {
 }
 
 void Game::OnEnter_Physics() {
-    float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x) - 100.0f;
-    //float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y) - 200.0f;
-    _bodies.reserve(20);
-    for(int i = 0; i < 20; ++i) {
-        float x = 100.0f + std::fmod((i + 1) * 200.0f, width);
-        float y = 50.0f + ((200.0f * i) / width);
+    float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
+    float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
+    float box_valid_x_pos = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x) - 100.0f;
+    _bodies.reserve(21);
+    float x = width * 0.5f;
+    float y = height * 0.85f;
+    _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
+                    ,Vector2(x, y)
+                    ,Vector2::ZERO
+                    ,Vector2::ZERO
+                    , std::move(std::make_unique<ColliderOBB>(Vector2(x, y), Vector2{width * 0.5f, 2.5f}))
+                    } });
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnablePhysics(true);
+    for(int i = 1; i < 21; ++i) {
+        x = 100.0f + std::fmod((i + 1) * 200.0f, box_valid_x_pos);
+        y = 50.0f + ((200.0f * i) / box_valid_x_pos);
         _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
                     ,Vector2(x, y)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
                     , std::move(std::make_unique<ColliderCircle>(Vector2(x, y), 25.0f))
                     } });
-        _bodies.back().EnableGravity(false);
+        _bodies.back().EnableGravity(true);
+        _bodies.back().EnablePhysics(true);
     }
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
@@ -201,9 +213,10 @@ void Game::ShowDebugWindow() {
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         if(!_bodies.empty()) {
-            const auto [distance, is_valid] = GJKDistance(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
+            const auto [is_valid, distance, normal] = GJKDistance(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
             if(is_valid) {
                 ImGui::Text("GJKDistance: %f", distance);
+                ImGui::Text("GJKDistance Normal: %f", normal);
             } else {
                 ImGui::Text("GJKDistance: Invalid");
             }
