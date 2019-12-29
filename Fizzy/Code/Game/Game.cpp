@@ -201,7 +201,7 @@ void Game::ShowDebugWindow() {
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         if(!_bodies.empty()) {
-            const auto [distance, is_valid] = GJKDistance(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
+            const auto [is_valid, distance, normal] = GJKDistance(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
             if(is_valid) {
                 ImGui::Text("GJKDistance: %f", distance);
             } else {
