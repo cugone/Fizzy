@@ -17,6 +17,7 @@
 #include "Game/GameConfig.hpp"
 
 void Game::Initialize() {
+    PROFILE_LOG_SCOPE_FUNCTION();
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
     OnEnterState(0);
 }
