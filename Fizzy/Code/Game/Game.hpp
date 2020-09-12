@@ -53,8 +53,10 @@ private:
     float _max_shake_angle = 0.0f;
     float _max_shake_x = 0.0f;
     float _max_shake_y = 0.0f;
-    bool _show_debug_window = false;
-    bool _show_world_partition = false;
+    bool _isGravityEnabled = true;
+    bool _isDragEnabled = true;
+    bool _show_debug_window = true;
+    bool _show_world_partition = true;
     bool _show_collision = true;
     int _next_state = 0;
     int _cur_state = 0;

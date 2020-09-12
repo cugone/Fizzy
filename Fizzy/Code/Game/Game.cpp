@@ -4,9 +4,12 @@
 #include "Engine/Core/DataUtils.hpp"
 #include "Engine/Core/FileUtils.hpp"
 #include "Engine/Core/KerningFont.hpp"
+#include "Engine/Core/Utilities.hpp"
 
 #include "Engine/Math/Vector2.hpp"
 #include "Engine/Math/Vector4.hpp"
+
+#include "Engine/Physics/PhysicsUtils.hpp"
 
 #include "Engine/Renderer/AnimatedSprite.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
@@ -19,11 +22,14 @@
 void Game::Initialize() {
     PROFILE_LOG_SCOPE_FUNCTION();
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
-    OnEnterState(0);
+    ChangeState(-1);
 }
 
 void Game::BeginFrame() {
     if(_next_state != _cur_state) {
+        if(_next_state < 0) {
+            _next_state = _cur_state;
+        }
         OnExitState(_cur_state);
         _cur_state = _next_state;
         OnEnterState(_cur_state);
@@ -64,21 +70,19 @@ void Game::HandlePlayerInput_Physics(TimeUtils::FPSeconds /*deltaSeconds*/, Came
         return;
     }
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::G)) {
-        for(auto& b : _bodies) {
-            b.EnableGravity(!b.IsGravityEnabled());
-        }
+        g_thePhysicsSystem->EnableGravity(!_isGravityEnabled);
     }
     if(g_theInputSystem->IsKeyDown(KeyCode::Enter)) {
         const auto window_pos = g_theInputSystem->GetMouseCoords();
-        const auto displacement = _bodies[0].GetPosition() - window_pos;
+        const auto displacement = _bodies[1].GetPosition() - window_pos;
         const auto dir = displacement.GetNormalize();
         const auto magnitude = 10000.0f;
-        _bodies[0].ApplyForce(dir * magnitude);
+        _bodies[1].ApplyForce(dir * magnitude);
     }
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
-        const auto mouse_pos = g_theInputSystem->GetMouseCoords();
-        _new_bodies.push_back(mouse_pos);
-    }
+    //if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+    //    const auto mouse_pos = g_theInputSystem->GetMouseCoords();
+    //    _new_bodies.push_back(mouse_pos);
+    //}
 }
 
 void Game::ChangeState(int newState) {
@@ -102,36 +106,54 @@ void Game::OnExitState(int state) {
 void Game::OnEnter_Physics() {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
-    float box_valid_x_pos = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x) - 100.0f;
-    _bodies.reserve(21);
-    float x = width * 0.5f;
-    float y = height * 0.85f;
-    _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
-                    ,Vector2(x, y)
+    const std::size_t maxBodies = 2;
+    _bodies.reserve(maxBodies);
+    float screenX = width * 0.50f;
+    float screenY = height * 0.50f;
+    const auto world_dims = g_theRenderer->GetOutput()->GetDimensions();
+    const auto mins = Vector2(-world_dims) * 0.5f;
+    const auto maxs = Vector2(world_dims) * 0.5f;
+    auto physicsSystemDesc = PhysicsSystemDesc{};
+    physicsSystemDesc.world_bounds = AABB2{mins, maxs};
+    float x1 = screenX;
+    float y1 = screenY;
+    float x2 = x1;
+    float y2 = y1 - 55.0f;
+    float x3 = x2 - 55.0f;
+    float y3 = y2;
+    _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
+                    Vector2(x1, y1)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    , std::move(std::make_unique<ColliderOBB>(Vector2(x, y), Vector2{width * 0.5f, 2.5f}))
+                    ,std::move(std::make_unique<ColliderCircle>(Vector2(x1, y1), 25.0f))
+                    ,PhysicsMaterial{0.0f, 0.0f}
+                    ,PhysicsDesc{0.0f}
                     } });
     _bodies.back().EnableGravity(false);
-    _bodies.back().EnablePhysics(true);
-    for(int i = 1; i < 21; ++i) {
-        x = 100.0f + std::fmod((i + 1) * 200.0f, box_valid_x_pos);
-        y = 50.0f + ((200.0f * i) / box_valid_x_pos);
-        _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
-                    ,Vector2(x, y)
+    _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
+                    Vector2(x2, y2)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    , std::move(std::make_unique<ColliderCircle>(Vector2(x, y), 25.0f))
+                    ,std::move(std::make_unique<ColliderCircle>(Vector2(x2, y2), 25.0f))
+                    ,PhysicsMaterial{0.0f, 0.0f}
+                    ,PhysicsDesc{}
                     } });
-        _bodies.back().EnableGravity(true);
-        _bodies.back().EnablePhysics(true);
-    }
+    _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
+                Vector2(x3, y3)
+                ,Vector2::Y_AXIS * 50.0f
+                ,Vector2::ZERO
+                ,std::move(std::make_unique<ColliderCircle>(Vector2(x3, y3), 25.0f))
+                ,PhysicsMaterial{0.0f, 0.0f}
+                ,PhysicsDesc{}
+                }});
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(true);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
         body_ptrs[i] = &_bodies[i];
     }
+    g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
-    g_thePhysicsSystem->SetWorldDescription({AABB2(-Vector2(g_theRenderer->GetOutput()->GetDimensions()), Vector2(g_theRenderer->GetOutput()->GetDimensions())) });
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
@@ -165,6 +187,7 @@ void Game::Update_Physics(TimeUtils::FPSeconds deltaSeconds) {
     HandleDebugInput(deltaSeconds, base_camera);
     HandlePlayerInput_Physics(deltaSeconds, base_camera);
     base_camera.Update(deltaSeconds);
+
 }
 
 void Game::RenderCommon() const {
@@ -198,11 +221,13 @@ void Game::Render_Physics() const {
 
 void Game::EndFrame_Physics() {
     for(const auto& pos : _new_bodies) {
-        _bodies.push_back(RigidBody{ RigidBodyDesc{ PhysicsMaterial{}
-            ,pos
+        _bodies.push_back(RigidBody{ g_thePhysicsSystem->GetWorldDescription(), RigidBodyDesc{
+            pos
             ,Vector2::ZERO
             ,Vector2::ZERO
-            , std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
+            ,std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
+            ,PhysicsMaterial {}
+            ,PhysicsDesc{}
             } });
         g_thePhysicsSystem->AddObject(&_bodies.back());
     }
@@ -213,16 +238,44 @@ void Game::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
-        if(!_bodies.empty()) {
-            const auto [is_valid, distance, normal] = GJKDistance(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
-            if(is_valid) {
-                ImGui::Text("GJKDistance: %f", distance);
-                ImGui::Text("GJKDistance Normal: %f", normal);
-            } else {
-                ImGui::Text("GJKDistance: Invalid");
+        if(_bodies.size() > 1) {
+            const auto resultGJK = PhysicsUtils::GJK(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
+            const auto resultEPA = PhysicsUtils::EPA(resultGJK, *_bodies[0].GetCollider(), *_bodies[1].GetCollider());
+            const auto distance = resultEPA.distance;
+            const auto normal = resultEPA.normal;
+            static auto sDistance = 0.0f;
+            static auto sNormal = Vector3::ZERO;
+            if(resultGJK.collides) {
+                sDistance = distance;
+                sNormal = normal;
             }
+            ImGui::Text("GJKDistance: %f", sDistance);
+            ImGui::Text("GJKDistance Normal: %f", sNormal);
         } else {
             ImGui::Text("GJKDistance: Invalid");
+        }
+        if(ImGui::CollapsingHeader("Bodies")) {
+            for(std::size_t i = 0; i < _bodies.size(); ++i) {
+                const auto* body = &_bodies[i];
+                if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
+                    const auto acc = body->GetAcceleration();
+                    const auto vel = body->GetVelocity();
+                    const auto pos = body->GetPosition();
+                    const auto aacc = body->GetAngularAccelerationDegrees();
+                    const auto avel = body->GetAngularVelocityDegrees();
+                    const auto apos = body->GetOrientationDegrees();
+                    const auto mass = body->GetMass();
+                    ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
+                    ImGui::Text("M: %f", mass);
+                    ImGui::Text("A: [%f, %f]", acc.x, acc.y);
+                    ImGui::Text("V: [%f, %f]", vel.x, vel.y);
+                    ImGui::Text("P: [%f, %f]", pos.x, pos.y);
+                    ImGui::Text("oA: %f", aacc);
+                    ImGui::Text("oV: %f", avel);
+                    ImGui::Text("oP: %f", apos);
+                    ImGui::TreePop();
+                }
+            }
         }
     }
     ImGui::End();
@@ -233,30 +286,27 @@ void Game::HandleDebugInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_ca
     HandleDebugMouseInput(deltaSeconds, base_camera);
 }
 
-void Game::HandleDebugKeyboardInput(TimeUtils::FPSeconds deltaSeconds, Camera2D& base_camera) {
+void Game::HandleDebugKeyboardInput(TimeUtils::FPSeconds /*deltaSeconds*/, Camera2D& /*base_camera*/) {
     if(g_theUISystem->GetIO().WantCaptureKeyboard) {
         return;
     }
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::F1)) {
         _show_debug_window = !_show_debug_window;
     }
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::LeftBracket)) {
-        ChangeState((_cur_state + 1) % 2);
-    }
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::F4)) {
         g_theUISystem->ToggleImguiDemoWindow();
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::I)) {
-        base_camera.Translate(-Vector2::Y_AXIS * _cam_speed * deltaSeconds.count());
+    if(g_theInputSystem->IsKeyDown(KeyCode::W)) {
+        /* DO NOTHING */
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::J)) {
-        base_camera.Translate(-Vector2::X_AXIS * _cam_speed * deltaSeconds.count());
+    if(g_theInputSystem->IsKeyDown(KeyCode::A)) {
+        /* DO NOTHING */
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::K)) {
-        base_camera.Translate(Vector2::Y_AXIS * _cam_speed * deltaSeconds.count());
+    if(g_theInputSystem->IsKeyDown(KeyCode::S)) {
+        /* DO NOTHING */
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::L)) {
-        base_camera.Translate(Vector2::X_AXIS * _cam_speed * deltaSeconds.count());
+    if(g_theInputSystem->IsKeyDown(KeyCode::D)) {
+        /* DO NOTHING */
     }
 }
 
