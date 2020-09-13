@@ -1,0 +1,38 @@
+#pragma once
+
+#include "Engine/Core/TimeUtils.hpp"
+
+#include "Game/IState.hpp"
+
+#include <cstdint>
+#include <memory>
+
+#include <guiddef.h>
+
+class GameStateMachine {
+public:
+    GameStateMachine() = default;
+    GameStateMachine(const GameStateMachine& other) = default;
+    GameStateMachine(GameStateMachine&& other) = default;
+    GameStateMachine& operator=(const GameStateMachine& other) = default;
+    GameStateMachine& operator=(GameStateMachine&& other) = default;
+    ~GameStateMachine() = default;
+
+    void ChangeState(const GUID& newStateId) noexcept;
+    void RestartState() noexcept;
+
+    void BeginFrame() noexcept;
+    void Update([[maybe_unused]]TimeUtils::FPSeconds deltaSeconds) noexcept;
+    void Render() const noexcept;
+    void EndFrame() noexcept;
+
+protected:
+private:
+    bool HasStateChanged() const noexcept;
+    void OnExitState() noexcept;
+    void OnEnterState(const GUID& enteringStateId) noexcept;
+
+    GUID _currentStateId{};
+    GUID _nextStateId{};
+    std::unique_ptr<IState> _state{};
+};

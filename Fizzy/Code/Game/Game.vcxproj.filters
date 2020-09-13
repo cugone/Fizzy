@@ -40,6 +40,15 @@
     <ClCompile Include="GameConfig.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="GameStateMachine.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GameStatePhysics.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GameStateRestartCurrentState.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameCommon.hpp">
@@ -53,6 +62,18 @@
     </ClInclude>
     <ClInclude Include="GameConfig.hpp">
       <Filter>General</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStateMachine.hpp">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="IState.hpp">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStatePhysics.hpp">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStateRestartCurrentState.hpp">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
