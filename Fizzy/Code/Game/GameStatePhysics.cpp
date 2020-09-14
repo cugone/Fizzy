@@ -144,7 +144,13 @@ void GameStatePhysics::HandleKeyboardInput() noexcept {
 }
 
 void GameStatePhysics::HandleMouseInput() noexcept {
-    /* DO NOTHING */
+    if(g_theUISystem->WantsInputMouseCapture()) {
+        return;
+    }
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+        const auto new_body_position = _ui_camera.WindowToWorldPoint(g_theInputSystem->GetCursorWindowPosition());
+        _new_body_positions.push_back(new_body_position);
+    }
 }
 
 void GameStatePhysics::ShowDebugWindow() {
