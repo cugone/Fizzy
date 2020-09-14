@@ -44,7 +44,7 @@ void GameStatePhysics::OnEnter() noexcept {
                     }});
     _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
                 Vector2(x3, y3)
-                ,Vector2::Y_AXIS * 50.0f
+                ,Vector2::Y_AXIS * 1.0f
                 ,Vector2::ZERO
                 ,std::move(std::make_unique<ColliderCircle>(Vector2(x3, y3), 25.0f))
                 ,PhysicsMaterial{0.0f, 0.0f}
