@@ -9,6 +9,13 @@ bool GameStateMachine::HasStateChanged() const noexcept {
     return !IsEqualGUID(_currentStateId, _nextStateId);
 }
 
+GameStateMachine::GameStateMachine(const GUID& initialState)
+    : _currentStateId{initialState}
+    , _nextStateId{initialState}
+{
+    
+}
+
 void GameStateMachine::ChangeState(const GUID& newStateId) noexcept {
     _nextStateId = newStateId;
 }
@@ -18,16 +25,21 @@ void GameStateMachine::RestartState() noexcept {
 }
 
 void GameStateMachine::OnEnterState(const GUID& enteringStateId) noexcept {
-    if(IsEqualGUID(enteringStateId, GameStatePhysics::ID)) {
-        _state = std::make_unique<GameStatePhysics>();
-    } else if(IsEqualGUID(enteringStateId, GameStateRestartCurrentState::ID)) {
-        OnEnterState(_currentStateId);
-        _nextStateId = _currentStateId;
-        return;
+    if(_state = CreateStateFromId(enteringStateId); _state != nullptr) {
+        _state->OnEnter();
     } else {
-        ERROR_AND_DIE("GameStateMachine::OnEnterState: Invalid state id.");
+        ERROR_AND_DIE("GameStateMachine::OnEnterState: CreateStateFromId returned an invalid object.");
     }
-    _state->OnEnter();
+}
+
+std::unique_ptr<IState> GameStateMachine::CreateStateFromId(const GUID& id) noexcept {
+    if(IsEqualGUID(id, GameStatePhysics::ID)) {
+        return std::make_unique<GameStatePhysics>();
+    } else if(IsEqualGUID(id, GameStateRestartCurrentState::ID)) {
+        _nextStateId = _currentStateId;
+        return CreateStateFromId(_currentStateId);
+    }
+    return {};
 }
 
 void GameStateMachine::OnExitState() noexcept {

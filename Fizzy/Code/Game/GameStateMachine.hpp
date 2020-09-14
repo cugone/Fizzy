@@ -3,6 +3,7 @@
 #include "Engine/Core/TimeUtils.hpp"
 
 #include "Game/IState.hpp"
+#include "Game/GameStatePhysics.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -12,6 +13,7 @@
 class GameStateMachine {
 public:
     GameStateMachine() = default;
+    GameStateMachine(const GUID& initialState);
     GameStateMachine(const GameStateMachine& other) = default;
     GameStateMachine(GameStateMachine&& other) = default;
     GameStateMachine& operator=(const GameStateMachine& other) = default;
@@ -31,6 +33,8 @@ private:
     bool HasStateChanged() const noexcept;
     void OnExitState() noexcept;
     void OnEnterState(const GUID& enteringStateId) noexcept;
+
+    std::unique_ptr<IState> CreateStateFromId(const GUID& id) noexcept;
 
     GUID _currentStateId{};
     GUID _nextStateId{};
