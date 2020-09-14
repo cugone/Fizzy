@@ -117,18 +117,21 @@ void GameStatePhysics::Render() const noexcept {
 }
 
 void GameStatePhysics::EndFrame() noexcept {
-    for(const auto& pos : _new_bodies) {
-        _bodies.push_back(RigidBody{g_thePhysicsSystem->GetWorldDescription(), RigidBodyDesc{
-            pos
-            ,Vector2::ZERO
-            ,Vector2::ZERO
-            ,std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
-            ,PhysicsMaterial {}
-            ,PhysicsDesc{}
-            }});
+    for(const auto& pos : _new_body_positions) {
+        auto new_body = RigidBody{
+            g_thePhysicsSystem->GetWorldDescription()
+            ,RigidBodyDesc{
+                pos
+                ,Vector2::ZERO
+                ,Vector2::ZERO
+                ,std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
+                ,PhysicsMaterial {}
+                ,PhysicsDesc{}
+            }};
+        _bodies.push_back(std::move(new_body));
         g_thePhysicsSystem->AddObject(&_bodies.back());
     }
-    _new_bodies.clear();
+    _new_body_positions.clear();
 }
 
 void GameStatePhysics::HandleInput() noexcept {
