@@ -24,7 +24,7 @@ void GameStatePhysics::OnEnter() noexcept {
     float y2 = y1 - 55.0f;
     float x3 = x2 - 55.0f;
     float y3 = y2;
-    _poly = Polygon2{3, Vector2{x1 + 125.0f, y1}, Vector2{50.0f, 25.0f}, 0.0f};
+
     _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
                     Vector2(x1, y1)
                     ,Vector2::ZERO

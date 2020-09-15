@@ -41,8 +41,6 @@ private:
 
     void ShowDebugWindow();
 
-    Polygon2 _poly{};
-
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_body_positions{};
     mutable Camera2D _ui_camera{};
