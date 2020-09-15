@@ -117,8 +117,11 @@ void GameStatePhysics::Render() const noexcept {
 }
 
 void GameStatePhysics::EndFrame() noexcept {
+    if(_new_body_positions.empty()) {
+        return;
+    }
     for(const auto& pos : _new_body_positions) {
-        auto new_body = RigidBody{
+        _bodies.push_back(RigidBody{
             g_thePhysicsSystem->GetWorldDescription()
             ,RigidBodyDesc{
                 pos
@@ -127,10 +130,15 @@ void GameStatePhysics::EndFrame() noexcept {
                 ,std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
                 ,PhysicsMaterial {}
                 ,PhysicsDesc{}
-            }};
-        _bodies.push_back(std::move(new_body));
-        g_thePhysicsSystem->AddObject(&_bodies.back());
+            }});
     }
+    const auto new_size = _bodies.size();
+    auto new_body_ptrs = std::vector<RigidBody*>(new_size);
+    for(auto i = std::size_t{0u}; i < new_size; ++i) {
+        new_body_ptrs[i] = &_bodies[i];
+    }
+    g_thePhysicsSystem->RemoveAllObjectsImmediately();
+    g_thePhysicsSystem->AddObjects(new_body_ptrs);
     _new_body_positions.clear();
 }
 
