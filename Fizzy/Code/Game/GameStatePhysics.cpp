@@ -121,16 +121,14 @@ void GameStatePhysics::EndFrame() noexcept {
         return;
     }
     for(const auto& pos : _new_body_positions) {
-        _bodies.push_back(RigidBody{
-            g_thePhysicsSystem->GetWorldDescription()
-            ,RigidBodyDesc{
-                pos
-                ,Vector2::ZERO
-                ,Vector2::ZERO
-                ,std::move(std::make_unique<ColliderCircle>(pos, 25.0f))
-                ,PhysicsMaterial {}
-                ,PhysicsDesc{}
-            }});
+        _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+            pos
+            , Vector2::ZERO
+            , Vector2::ZERO
+            , new ColliderCircle(pos, 25.0f)
+            , PhysicsMaterial{}
+            , PhysicsDesc{}
+        )));
     }
     const auto new_size = _bodies.size();
     auto new_body_ptrs = std::vector<RigidBody*>(new_size);
@@ -156,7 +154,7 @@ void GameStatePhysics::HandleMouseInput() noexcept {
         return;
     }
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
-        const auto new_body_position = _ui_camera.WindowToWorldPoint(g_theInputSystem->GetCursorWindowPosition());
+        const auto new_body_position = g_theInputSystem->GetMouseCoords();
         _new_body_positions.push_back(new_body_position);
     }
 }
