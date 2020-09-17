@@ -71,7 +71,8 @@ void GameStatePhysics::OnExit() noexcept {
 
 
 void GameStatePhysics::BeginFrame() noexcept {
-    /* DO NOTHING */
+    const auto pred = [](const RigidBody& b) mutable ->bool { return b.ShouldKill(); };
+    _bodies.erase(std::remove_if(_bodies.begin(), _bodies.end(), pred), _bodies.end());
 }
 
 void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
