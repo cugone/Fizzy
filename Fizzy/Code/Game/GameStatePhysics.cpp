@@ -25,31 +25,31 @@ void GameStatePhysics::OnEnter() noexcept {
     float x3 = x2 - 55.0f;
     float y3 = y2;
 
-    _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x1, y1)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    ,std::move(std::make_unique<ColliderCircle>(Vector2(x1, y1), 25.0f))
+                    ,new ColliderCircle(Vector2(x1, y1), 25.0f)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{0.0f}
-                    }});
+                    )));
     _bodies.back().EnableGravity(false);
-    _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x2, y2)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    ,std::move(std::make_unique<ColliderCircle>(Vector2(x2, y2), 25.0f))
+                    ,new ColliderCircle(Vector2(x2, y2), 25.0f)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{}
-                    }});
-    _bodies.push_back(RigidBody{physicsSystemDesc, RigidBodyDesc{
+                    )));
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                 Vector2(x3, y3)
                 ,Vector2::Y_AXIS * 1.0f
                 ,Vector2::ZERO
-                ,std::move(std::make_unique<ColliderCircle>(Vector2(x3, y3), 25.0f))
+                ,new ColliderCircle(Vector2(x3, y3), 25.0f)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
-                }});
+                )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
