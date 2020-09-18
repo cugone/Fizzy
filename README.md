@@ -1,2 +1,2 @@
 # Fizzy
-A 2D demos of the Abrams2019 Physics System
+Demos of the Abrams2019 Physics System
