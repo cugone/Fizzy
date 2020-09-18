@@ -40,6 +40,7 @@ private:
     void HandleMouseInput() noexcept;
 
     void ShowDebugWindow();
+    void ToggleShowDebugWindow() noexcept;
 
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_body_positions{};

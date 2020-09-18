@@ -147,7 +147,9 @@ void GameStatePhysics::HandleInput() noexcept {
 }
 
 void GameStatePhysics::HandleKeyboardInput() noexcept {
-    /* DO NOTHING */
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::F1)) {
+        ToggleShowDebugWindow();
+    }
 }
 
 void GameStatePhysics::HandleMouseInput() noexcept {
@@ -158,6 +160,10 @@ void GameStatePhysics::HandleMouseInput() noexcept {
         const auto new_body_position = g_theInputSystem->GetMouseCoords();
         _new_body_positions.push_back(new_body_position);
     }
+}
+
+void GameStatePhysics::ToggleShowDebugWindow() noexcept {
+    _show_debug_window = !_show_debug_window;
 }
 
 void GameStatePhysics::ShowDebugWindow() {
