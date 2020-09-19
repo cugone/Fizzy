@@ -1,6 +1,7 @@
 #include "Game/GameStatePhysics.hpp"
 
 #include "Engine/Physics/PhysicsUtils.hpp"
+#include "Engine/Renderer/Window.hpp"
 
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
@@ -20,37 +21,40 @@ void GameStatePhysics::OnEnter() noexcept {
     physicsSystemDesc.world_bounds = AABB2{mins, maxs};
     float x1 = screenX;
     float y1 = screenY;
-    float x2 = x1;
-    float y2 = y1 - 55.0f;
-    float x3 = x2 - 55.0f;
+    float x2 = x1 - 55.0f;
+    float y2 = y1;
+    float x3 = x1 + 55.0f;
     float y3 = y2;
 
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Vector2(x1, y1)
-                    ,Vector2::ZERO
-                    ,Vector2::ZERO
-                    ,new ColliderCircle(Vector2(x1, y1), 25.0f)
-                    ,PhysicsMaterial{0.0f, 0.0f}
-                    ,PhysicsDesc{0.0f}
-                    )));
-    _bodies.back().EnableGravity(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x2, y2)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
                     ,new ColliderCircle(Vector2(x2, y2), 25.0f)
                     ,PhysicsMaterial{0.0f, 0.0f}
+                    ,PhysicsDesc{0.0f}
+                    )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+                    Vector2(x1, y1)
+                    ,Vector2::ZERO
+                    ,Vector2::ZERO
+                    ,new ColliderCircle(Vector2(x1, y1), 25.0f)
+                    ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
+    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                 Vector2(x3, y3)
-                ,Vector2::Y_AXIS * 1.0f
+                ,Vector2::Y_AXIS
                 ,Vector2::ZERO
                 ,new ColliderCircle(Vector2(x3, y3), 25.0f)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
-    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(true);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
@@ -71,8 +75,7 @@ void GameStatePhysics::OnExit() noexcept {
 
 
 void GameStatePhysics::BeginFrame() noexcept {
-    const auto pred = [](const RigidBody& b) mutable ->bool { return b.ShouldKill(); };
-    _bodies.erase(std::remove_if(_bodies.begin(), _bodies.end(), pred), _bodies.end());
+    /* DO NOTHING */
 }
 
 void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
@@ -102,8 +105,8 @@ void GameStatePhysics::Render() const noexcept {
     g_theRenderer->SetViewportAsPercent();
 
     //2D View / HUD
-    const float ui_view_height = GRAPHICS_OPTION_WINDOW_HEIGHT;
-    const float ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
+    const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
+    const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
     const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
     auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
@@ -150,6 +153,9 @@ void GameStatePhysics::HandleKeyboardInput() noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::F1)) {
         ToggleShowDebugWindow();
     }
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::F4)) {
+        g_theUISystem->ToggleImguiDemoWindow();
+    }
 }
 
 void GameStatePhysics::HandleMouseInput() noexcept {
@@ -157,8 +163,13 @@ void GameStatePhysics::HandleMouseInput() noexcept {
         return;
     }
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
-        const auto new_body_position = g_theInputSystem->GetMouseCoords();
-        _new_body_positions.push_back(new_body_position);
+        POINT p;
+        if(::GetCursorPos(&p)) {
+            if(::ScreenToClient(reinterpret_cast<HWND>(g_theRenderer->GetOutput()->GetWindow()->GetWindowHandle()), &p)) {
+                const auto new_body_position = Vector2{static_cast<float>(p.x), static_cast<float>(p.y)};
+                _new_body_positions.push_back(new_body_position);
+            }
+        }
     }
 }
 
@@ -167,7 +178,25 @@ void GameStatePhysics::ToggleShowDebugWindow() noexcept {
 }
 
 void GameStatePhysics::ShowDebugWindow() {
-    if(ImGui::Begin("Debug Window", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if(ImGui::Begin("Debug Window", &_show_debug_window)) {
+        const auto mc = g_theInputSystem->GetMouseCoords();
+        const auto immc = ImGui::GetMousePos();
+        ImGui::Text("MC: [%f, %f]", mc.x, mc.y);
+        ImGui::Text("IMMC: [%f, %f]", immc.x, immc.y);
+        POINT p;
+        if(const auto has_wmc = ::GetCursorPos(&p); has_wmc) {
+            ImGui::Text("GCP: [%d, %d]", p.x, p.y);
+            if(::ScreenToClient(reinterpret_cast<HWND>(g_theRenderer->GetOutput()->GetWindow()->GetWindowHandle()), &p)) {
+                ImGui::Text("StCGCP: [%d, %d]", p.x, p.y);
+            }
+            ::GetCursorPos(&p);
+            if(::ClientToScreen(reinterpret_cast<HWND>(g_theRenderer->GetOutput()->GetWindow()->GetWindowHandle()), &p)) {
+                ImGui::Text("CtSGCP: [%d, %d]", p.x, p.y);
+            }
+        } else {
+            ImGui::Text("WMC: Invalid");
+            ImGui::Text("Transformed WMC: Invalid");
+        }
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         if(_bodies.size() > 1) {
