@@ -2,6 +2,7 @@
 
 #include "Engine/Core/Config.hpp"
 #include "Engine/Core/FileLogger.hpp"
+#include "Engine/Core/FileUtils.hpp"
 #include "Engine/Core/JobSystem.hpp"
 #include "Engine/Core/KeyValueParser.hpp"
 #include "Engine/Core/StringUtils.hpp"
@@ -44,8 +45,8 @@ App::App(const std::string& cmdString)
     : EngineSubsystem()
     , _theJobSystem{std::make_unique<JobSystem>(-1, static_cast<std::size_t>(JobType::Max), new std::condition_variable)}
     , _theFileLogger{std::make_unique<FileLogger>(*_theJobSystem.get(), "game")}
-    , _theConfig{ std::make_unique<Config>(KeyValueParser{cmdString}) }
-    , _theRenderer{std::make_unique<Renderer>(*_theFileLogger.get(), static_cast<unsigned int>(GRAPHICS_OPTION_WINDOW_WIDTH), static_cast<unsigned int>(GRAPHICS_OPTION_WINDOW_HEIGHT)) }
+    , _theConfig{std::make_unique<Config>(KeyValueParser{cmdString + "\n" + FileUtils::ReadStringBufferFromFile(g_options_filepath).value_or(g_options_str)})}
+    , _theRenderer{std::make_unique<Renderer>(*_theFileLogger.get(), *_theConfig.get()) }
     , _thePhysicsSystem{std::make_unique<PhysicsSystem>(*_theRenderer.get()) }
     , _theUI{std::make_unique<UISystem>(*_theFileLogger.get(), *_theRenderer.get())}
     , _theConsole{ std::make_unique<Console>(*_theFileLogger.get(), *_theRenderer.get()) }
@@ -77,15 +78,16 @@ void App::SetupEngineSystemPointers() {
 }
 
 void App::SetupEngineSystemChainOfResponsibility() {
+    g_theRenderer->SetNextHandler(g_theConsole);
     g_theConsole->SetNextHandler(g_theUISystem);
     g_theUISystem->SetNextHandler(g_theInputSystem);
     g_theInputSystem->SetNextHandler(g_theApp);
     g_theApp->SetNextHandler(nullptr);
-    g_theSubsystemHead = g_theConsole;
+    g_theSubsystemHead = g_theRenderer;
 }
 void App::Initialize() {
     g_theRenderer->Initialize();
-    g_theRenderer->SetVSync(GRAPHICS_OPTION_VSYNC);
+    g_theRenderer->SetVSync(currentGraphicsOptions.vsync);
     g_theRenderer->GetOutput()->GetWindow()->custom_message_handler = WindowProc;
 
     g_theUISystem->Initialize();
@@ -154,6 +156,16 @@ bool App::ProcessSystemMessage(const EngineMessage& msg) noexcept {
     case WindowsSystemMessage::Window_Destroy:
     {
         ::PostQuitMessage(0);
+        return true;
+    }
+    case WindowsSystemMessage::Window_Size:
+    {
+        LPARAM lp = msg.lparam;
+        const auto w = LOWORD(lp);
+        const auto h = HIWORD(lp);
+        currentGraphicsOptions.WindowWidth = static_cast<float>(w);
+        currentGraphicsOptions.WindowHeight = static_cast<float>(h);
+        currentGraphicsOptions.WindowAspectRatio = currentGraphicsOptions.WindowWidth / currentGraphicsOptions.WindowHeight;
         return true;
     }
     case WindowsSystemMessage::Window_ActivateApp:
