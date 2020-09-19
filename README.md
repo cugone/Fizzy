@@ -1,2 +1,2 @@
 # Fizzy
-A 2D Physics-based video game.
+Demos of the Abrams2019 Physics System
