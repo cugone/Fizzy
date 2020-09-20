@@ -54,7 +54,7 @@ void GameStatePhysics::OnEnter() noexcept {
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
-    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
