@@ -42,8 +42,13 @@ private:
     void ShowDebugWindow();
     void ToggleShowDebugWindow() noexcept;
 
+    void Debug_AddBodyOrApplyForceAtMouseCoords() noexcept;
+    void Debug_AddBodyAtMouseCoords() noexcept;
+    void Debug_ApplyImpulseAtMouseCoords() noexcept;
+
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_body_positions{};
+    Vector2 _debug_point_on_body{};
     mutable Camera2D _ui_camera{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;

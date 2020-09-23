@@ -25,6 +25,8 @@ void GameStatePhysics::OnEnter() noexcept {
     float y2 = y1;
     float x3 = x1 + 55.0f;
     float y3 = y2;
+    float x4 = x3 + 55.0f;
+    float y4 = y3;
 
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x2, y2)
@@ -56,6 +58,16 @@ void GameStatePhysics::OnEnter() noexcept {
                 )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+                Vector2(x4, y4)
+                ,Vector2::ZERO
+                ,Vector2::ZERO
+                ,new ColliderCircle(Vector2(x4, y4), 25.0f)
+                ,PhysicsMaterial{0.0f, 0.0f}
+                ,PhysicsDesc{}
+                )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
         body_ptrs[i] = &_bodies[i];
@@ -92,6 +104,8 @@ void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds
 
     Camera2D& base_camera = _ui_camera;
     base_camera.Update(deltaSeconds);
+
+    _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_bodies[3].GetCollider());
     HandleInput();
 }
 
@@ -118,6 +132,11 @@ void GameStatePhysics::Render() const noexcept {
 
     g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
+
+    if(!_debug_click_adds_bodies) {
+        g_theRenderer->DrawFilledCircle2D(_debug_point_on_body, 5.0f);
+    }
+
 }
 
 void GameStatePhysics::EndFrame() noexcept {
@@ -162,14 +181,8 @@ void GameStatePhysics::HandleMouseInput() noexcept {
     if(g_theUISystem->WantsInputMouseCapture()) {
         return;
     }
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
-        POINT p;
-        if(::GetCursorPos(&p)) {
-            if(::ScreenToClient(reinterpret_cast<HWND>(g_theRenderer->GetOutput()->GetWindow()->GetWindowHandle()), &p)) {
-                const auto new_body_position = Vector2{static_cast<float>(p.x), static_cast<float>(p.y)};
-                _new_body_positions.push_back(new_body_position);
-            }
-        }
+    if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
+        Debug_AddBodyOrApplyForceAtMouseCoords();
     }
 }
 
@@ -177,26 +190,30 @@ void GameStatePhysics::ToggleShowDebugWindow() noexcept {
     _show_debug_window = !_show_debug_window;
 }
 
+void GameStatePhysics::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
+    if(_debug_click_adds_bodies) {
+        Debug_AddBodyAtMouseCoords();
+    } else {
+        Debug_ApplyImpulseAtMouseCoords();
+    }
+}
+
+void GameStatePhysics::Debug_AddBodyAtMouseCoords() noexcept {
+    const auto p = g_theInputSystem->GetMouseCoords();
+    _new_body_positions.push_back(p);
+}
+
+void GameStatePhysics::Debug_ApplyImpulseAtMouseCoords() noexcept {
+    auto& body = _bodies[3];
+    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto point_on_body = MathUtils::CalcClosestPoint(p, *body.GetCollider());
+    const auto direction = (point_on_body - p).GetNormalize();
+    body.ApplyImpulse(direction * 100.0f);
+}
+
 void GameStatePhysics::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
-        const auto mc = g_theInputSystem->GetMouseCoords();
-        const auto immc = ImGui::GetMousePos();
-        ImGui::Text("MC: [%f, %f]", mc.x, mc.y);
-        ImGui::Text("IMMC: [%f, %f]", immc.x, immc.y);
-        POINT p;
-        if(const auto has_wmc = ::GetCursorPos(&p); has_wmc) {
-            ImGui::Text("GCP: [%d, %d]", p.x, p.y);
-            if(::ScreenToClient(reinterpret_cast<HWND>(g_theRenderer->GetOutput()->GetWindow()->GetWindowHandle()), &p)) {
-                ImGui::Text("StCGCP: [%d, %d]", p.x, p.y);
-            }
-            ::GetCursorPos(&p);
-            if(::ClientToScreen(reinterpret_cast<HWND>(g_theRenderer->GetOutput()->GetWindow()->GetWindowHandle()), &p)) {
-                ImGui::Text("CtSGCP: [%d, %d]", p.x, p.y);
-            }
-        } else {
-            ImGui::Text("WMC: Invalid");
-            ImGui::Text("Transformed WMC: Invalid");
-        }
+        ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         if(_bodies.size() > 1) {
