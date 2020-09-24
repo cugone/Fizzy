@@ -181,9 +181,7 @@ void GameStatePhysics::HandleMouseInput() noexcept {
     if(g_theUISystem->WantsInputMouseCapture()) {
         return;
     }
-    if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
-        Debug_AddBodyOrApplyForceAtMouseCoords();
-    }
+    Debug_AddBodyOrApplyForceAtMouseCoords();
 }
 
 void GameStatePhysics::ToggleShowDebugWindow() noexcept {
@@ -192,9 +190,13 @@ void GameStatePhysics::ToggleShowDebugWindow() noexcept {
 
 void GameStatePhysics::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
     if(_debug_click_adds_bodies) {
-        Debug_AddBodyAtMouseCoords();
+        if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+            Debug_AddBodyAtMouseCoords();
+        }
     } else {
-        Debug_ApplyImpulseAtMouseCoords();
+        if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
+            Debug_ApplyImpulseAtMouseCoords();
+        }
     }
 }
 
