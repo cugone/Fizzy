@@ -56,4 +56,5 @@ private:
     bool _show_debug_window = true;
     bool _show_world_partition = true;
     bool _show_collision = true;
+    bool _show_joints = true;
 };

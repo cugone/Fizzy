@@ -1,6 +1,8 @@
 #include "Game/GameStatePhysics.hpp"
 
 #include "Engine/Physics/PhysicsUtils.hpp"
+#include "Engine/Physics/SpringJoint.hpp"
+
 #include "Engine/Renderer/Window.hpp"
 
 #include "Game/GameCommon.hpp"
@@ -66,7 +68,7 @@ void GameStatePhysics::OnEnter() noexcept {
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
-    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
@@ -74,6 +76,10 @@ void GameStatePhysics::OnEnter() noexcept {
     }
     g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
+    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[3]);
+    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x3, y3});
+    sp_joint->SetMinimumCompressionDistance(50.0f);
+    sp_joint->SetStiffness(2.5f);
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
@@ -97,6 +103,7 @@ void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds
     }
     g_thePhysicsSystem->DebugShowWorldPartition(_show_world_partition);
     g_thePhysicsSystem->DebugShowCollision(_show_collision);
+    g_thePhysicsSystem->DebugShowJoints(_show_joints);
     g_theRenderer->UpdateGameTime(deltaSeconds);
     if(_show_debug_window) {
         ShowDebugWindow();
@@ -218,6 +225,7 @@ void GameStatePhysics::ShowDebugWindow() {
         ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
+        ImGui::Checkbox("Show Joints", &_show_joints);
         if(_bodies.size() > 1) {
             const auto resultGJK = PhysicsUtils::GJK(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
             const auto resultEPA = PhysicsUtils::EPA(resultGJK, *_bodies[0].GetCollider(), *_bodies[1].GetCollider());
