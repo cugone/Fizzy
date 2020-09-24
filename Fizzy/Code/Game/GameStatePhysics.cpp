@@ -234,29 +234,33 @@ void GameStatePhysics::ShowDebugWindow() {
         } else {
             ImGui::Text("GJKDistance: Invalid");
         }
-        if(ImGui::CollapsingHeader("Bodies")) {
-            for(std::size_t i = 0; i < _bodies.size(); ++i) {
-                const auto* body = &_bodies[i];
-                if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
-                    const auto acc = body->GetAcceleration();
-                    const auto vel = body->GetVelocity();
-                    const auto pos = body->GetPosition();
-                    const auto aacc = body->GetAngularAccelerationDegrees();
-                    const auto avel = body->GetAngularVelocityDegrees();
-                    const auto apos = body->GetOrientationDegrees();
-                    const auto mass = body->GetMass();
-                    ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
-                    ImGui::Text("M: %f", mass);
-                    ImGui::Text("A: [%f, %f]", acc.x, acc.y);
-                    ImGui::Text("V: [%f, %f]", vel.x, vel.y);
-                    ImGui::Text("P: [%f, %f]", pos.x, pos.y);
-                    ImGui::Text("oA: %f", aacc);
-                    ImGui::Text("oV: %f", avel);
-                    ImGui::Text("oP: %f", apos);
-                    ImGui::TreePop();
+        {
+            const auto b_size = _bodies.size();
+            std::string header = std::string{"Bodies - "} + std::to_string(b_size);
+            if(ImGui::CollapsingHeader(header.c_str())) {
+                for(std::size_t i = 0; i < b_size; ++i) {
+                    const auto* body = &_bodies[i];
+                    if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
+                        const auto acc = body->GetAcceleration();
+                        const auto vel = body->GetVelocity();
+                        const auto pos = body->GetPosition();
+                        const auto aacc = body->GetAngularAccelerationDegrees();
+                        const auto avel = body->GetAngularVelocityDegrees();
+                        const auto apos = body->GetOrientationDegrees();
+                        const auto mass = body->GetMass();
+                        ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
+                        ImGui::Text("M: %f", mass);
+                        ImGui::Text("A: [%f, %f]", acc.x, acc.y);
+                        ImGui::Text("V: [%f, %f]", vel.x, vel.y);
+                        ImGui::Text("P: [%f, %f]", pos.x, pos.y);
+                        ImGui::Text("oA: %f", aacc);
+                        ImGui::Text("oV: %f", avel);
+                        ImGui::Text("oP: %f", apos);
+                        ImGui::TreePop();
+                    }
                 }
             }
         }
+        ImGui::End();
     }
-    ImGui::End();
 }
