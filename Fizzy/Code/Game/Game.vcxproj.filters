@@ -49,6 +49,9 @@
     <ClCompile Include="GameStateGravityDrag.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="GameStateConstraints.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameCommon.hpp">
@@ -73,6 +76,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="GameStateGravityDrag.hpp">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStateConstraints.hpp">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

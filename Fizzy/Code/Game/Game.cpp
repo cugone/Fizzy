@@ -21,6 +21,8 @@
 
 #include "Game/GameStateGravityDrag.hpp"
 
+#include <array>
+
 void Game::Initialize() {
     PROFILE_LOG_SCOPE_FUNCTION();
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
@@ -35,6 +37,39 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
     _state.Update(deltaSeconds);
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::R)) {
         _state.RestartState();
+    }
+    ShowDemoSelectionWindow();
+}
+
+void Game::ShowDemoSelectionWindow() noexcept {
+    if(ImGui::Begin("Demo", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
+        std::array items{"GravityDrag", "Constraints"};
+        const char* current_item = items[_demo_index];
+        if(ImGui::BeginCombo("Demo", current_item)) {
+            for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
+                const bool is_selected = current_item == *it;
+                if(ImGui::Selectable(*it, is_selected)) {
+                    current_item = *it;
+                    _demo_index = std::distance(std::cbegin(items), it);
+                }
+                if(is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+                switch(_demo_index) {
+                case 0:
+                    _state.ChangeState(GameStateGravityDrag::ID);
+                    break;
+                case 1:
+                    _state.ChangeState(GameStateConstraints::ID);
+                    break;
+                }
+            }
+            ImGui::EndCombo();
+        }
+        if(ImGui::Button("Restart Demo")) {
+            _state.RestartState();
+        }
+        ImGui::End();
     }
 }
 

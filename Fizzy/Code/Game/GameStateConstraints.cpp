@@ -1,4 +1,4 @@
-#include "Game/GameStateGravityDrag.hpp"
+#include "Game/GameStateConstraints.hpp"
 
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
@@ -8,7 +8,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
-void GameStateGravityDrag::OnEnter() noexcept {
+void GameStateConstraints::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
     const std::size_t maxBodies = 2;
@@ -25,9 +25,9 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float y1 = screenY;
     float x2 = x1 - 55.0f;
     float y2 = y1;
-    float x3 = x1 + 55.0f;
-    float y3 = y1;
-    float x4 = x3 + 55.0f;
+    float x3 = x1;
+    float y3 = y1 + 55.0f;
+    float x4 = x1 + 55.0f;
     float y4 = y1;
     float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
@@ -58,8 +58,8 @@ void GameStateGravityDrag::OnEnter() noexcept {
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
-    _bodies.back().EnableGravity(false);
-    _bodies.back().EnableDrag(true);
+    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                 Vector2(x4, y4)
                 ,Vector2::Y_AXIS
@@ -69,7 +69,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                 ,PhysicsDesc{}
                 )));
     _bodies.back().EnableGravity(true);
-    _bodies.back().EnableDrag(true);
+    _bodies.back().EnableDrag(false);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
         body_ptrs[i] = &_bodies[i];
@@ -77,11 +77,15 @@ void GameStateGravityDrag::OnEnter() noexcept {
     g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
     _activeBody = &_bodies[2];
+    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[1], &_bodies[2]);
+    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x3, y3}).CalcLength());
+    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x3, y3});
+    sp_joint->SetStiffness(1.0f);
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
 
-void GameStateGravityDrag::OnExit() noexcept {
+void GameStateConstraints::OnExit() noexcept {
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
     g_thePhysicsSystem->DebugShowCollision(false);
     g_thePhysicsSystem->Enable(false);
@@ -89,11 +93,11 @@ void GameStateGravityDrag::OnExit() noexcept {
 }
 
 
-void GameStateGravityDrag::BeginFrame() noexcept {
+void GameStateConstraints::BeginFrame() noexcept {
     /* DO NOTHING */
 }
 
-void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
+void GameStateConstraints::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
         g_theApp->SetIsQuitting(true);
         return;
@@ -113,7 +117,7 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
     HandleInput();
 }
 
-void GameStateGravityDrag::Render() const noexcept {
+void GameStateConstraints::Render() const noexcept {
     g_theRenderer->ResetModelViewProjection();
     g_theRenderer->SetRenderTargetsToBackBuffer();
     g_theRenderer->ClearDepthStencilBuffer();
@@ -143,7 +147,7 @@ void GameStateGravityDrag::Render() const noexcept {
 
 }
 
-void GameStateGravityDrag::EndFrame() noexcept {
+void GameStateConstraints::EndFrame() noexcept {
     if(_new_body_positions.empty()) {
         return;
     }
@@ -167,12 +171,12 @@ void GameStateGravityDrag::EndFrame() noexcept {
     _new_body_positions.clear();
 }
 
-void GameStateGravityDrag::HandleInput() noexcept {
+void GameStateConstraints::HandleInput() noexcept {
     HandleKeyboardInput();
     HandleMouseInput();
 }
 
-void GameStateGravityDrag::HandleKeyboardInput() noexcept {
+void GameStateConstraints::HandleKeyboardInput() noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::F1)) {
         ToggleShowDebugWindow();
     }
@@ -181,18 +185,18 @@ void GameStateGravityDrag::HandleKeyboardInput() noexcept {
     }
 }
 
-void GameStateGravityDrag::HandleMouseInput() noexcept {
+void GameStateConstraints::HandleMouseInput() noexcept {
     if(g_theUISystem->WantsInputMouseCapture()) {
         return;
     }
     Debug_AddBodyOrApplyForceAtMouseCoords();
 }
 
-void GameStateGravityDrag::ToggleShowDebugWindow() noexcept {
+void GameStateConstraints::ToggleShowDebugWindow() noexcept {
     _show_debug_window = !_show_debug_window;
 }
 
-void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
+void GameStateConstraints::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
     if(_debug_click_adds_bodies) {
         if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
             Debug_AddBodyAtMouseCoords();
@@ -204,19 +208,19 @@ void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
     }
 }
 
-void GameStateGravityDrag::Debug_AddBodyAtMouseCoords() noexcept {
+void GameStateConstraints::Debug_AddBodyAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
     _new_body_positions.push_back(p);
 }
 
-void GameStateGravityDrag::Debug_ApplyImpulseAtMouseCoords() noexcept {
+void GameStateConstraints::Debug_ApplyImpulseAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
     _activeBody->ApplyImpulse(direction * 100.0f);
 }
 
-void GameStateGravityDrag::ShowDebugWindow() {
+void GameStateConstraints::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
         ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);

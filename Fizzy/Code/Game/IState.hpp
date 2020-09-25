@@ -4,7 +4,6 @@
 
 class IState {
 public:
-    using StateId = uint64_t;
     virtual ~IState() = default;
 
     virtual void OnEnter() noexcept = 0;

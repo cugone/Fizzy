@@ -27,6 +27,8 @@ public:
 
 protected:
 private:
+    void ShowDemoSelectionWindow() noexcept;
+
     GameStateMachine _state{};
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_bodies{};
@@ -35,6 +37,7 @@ private:
     float _max_shake_angle = 0.0f;
     float _max_shake_x = 0.0f;
     float _max_shake_y = 0.0f;
+    static inline std::size_t _demo_index{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
     bool _show_debug_window = true;
