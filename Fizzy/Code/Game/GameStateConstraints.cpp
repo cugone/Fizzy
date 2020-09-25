@@ -23,23 +23,9 @@ void GameStateConstraints::OnEnter() noexcept {
     physicsSystemDesc.world_bounds = AABB2{mins, maxs};
     float x1 = screenX;
     float y1 = screenY;
-    float x2 = x1 - 55.0f;
+    float x2 = x1 + 55.0f;
     float y2 = y1;
-    float x3 = x1;
-    float y3 = y1 + 55.0f;
-    float x4 = x1 + 55.0f;
-    float y4 = y1;
     float radius = 0.25f;
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Vector2(x2, y2)
-                    ,Vector2::ZERO
-                    ,Vector2::ZERO
-                    ,new ColliderCircle(Vector2(x2, y2), radius)
-                    ,PhysicsMaterial{0.0f, 0.0f}
-                    ,PhysicsDesc{0.0f}
-                    )));
-    _bodies.back().EnableGravity(false);
-    _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x1, y1)
                     ,Vector2::ZERO
@@ -51,24 +37,14 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                Vector2(x3, y3)
-                ,Vector2::ZERO
-                ,Vector2::ZERO
-                ,new ColliderCircle(Vector2(x3, y3), radius)
-                ,PhysicsMaterial{0.0f, 0.0f}
-                ,PhysicsDesc{}
-                )));
-    _bodies.back().EnableGravity(true);
-    _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                Vector2(x4, y4)
-                ,Vector2::Y_AXIS
-                ,Vector2::ZERO
-                ,new ColliderCircle(Vector2(x4, y4), radius)
-                ,PhysicsMaterial{0.0f, 0.0f}
-                ,PhysicsDesc{}
-                )));
-    _bodies.back().EnableGravity(true);
+        Vector2(x2, y2)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x2, y2), radius)
+        , PhysicsMaterial{0.0f, 0.0f}
+        , PhysicsDesc{0.0f}
+    )));
+    _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
@@ -76,10 +52,10 @@ void GameStateConstraints::OnEnter() noexcept {
     }
     g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
-    _activeBody = &_bodies[2];
-    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[1], &_bodies[2]);
-    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x3, y3}).CalcLength());
-    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x3, y3});
+    _activeBody = &_bodies[1];
+    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[1]);
+    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x2, y2}).CalcLength());
+    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x2, y2});
     sp_joint->SetStiffness(1.0f);
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
@@ -222,30 +198,12 @@ void GameStateConstraints::Debug_ApplyImpulseAtMouseCoords() noexcept {
 
 void GameStateConstraints::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
-        ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
-        ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         ImGui::Checkbox("Show Joints", &_show_joints);
-        if(_bodies.size() > 1) {
-            const auto resultGJK = PhysicsUtils::GJK(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
-            const auto resultEPA = PhysicsUtils::EPA(resultGJK, *_bodies[0].GetCollider(), *_bodies[1].GetCollider());
-            const auto distance = resultEPA.distance;
-            const auto normal = resultEPA.normal;
-            static auto sDistance = 0.0f;
-            static auto sNormal = Vector3::ZERO;
-            if(resultGJK.collides) {
-                sDistance = distance;
-                sNormal = normal;
-            }
-            ImGui::Text("GJKDistance: %f", sDistance);
-            ImGui::Text("GJKDistance Normal: %f", sNormal);
-        } else {
-            ImGui::Text("GJKDistance: Invalid");
-        }
         {
             const auto b_size = _bodies.size();
             std::string header = std::string{"Bodies - "} + std::to_string(b_size);
-            if(ImGui::CollapsingHeader(header.c_str())) {
+            if(ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                 for(std::size_t i = 0; i < b_size; ++i) {
                     const auto* body = &_bodies[i];
                     if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
