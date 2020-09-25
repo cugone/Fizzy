@@ -78,6 +78,7 @@ void GameStatePhysics::OnEnter() noexcept {
     g_thePhysicsSystem->AddObjects(body_ptrs);
     _activeBody = &_bodies[2];
     auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[1], &_bodies[2]);
+    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x3, y3}).CalcLength());
     sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x3, y3});
     sp_joint->SetStiffness(1.0f);
     g_thePhysicsSystem->Enable(true);
