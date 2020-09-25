@@ -223,22 +223,6 @@ void GameStateGravityDrag::ShowDebugWindow() {
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         ImGui::Checkbox("Show Joints", &_show_joints);
-        if(_bodies.size() > 1) {
-            const auto resultGJK = PhysicsUtils::GJK(*_bodies[0].GetCollider(), *_bodies[1].GetCollider());
-            const auto resultEPA = PhysicsUtils::EPA(resultGJK, *_bodies[0].GetCollider(), *_bodies[1].GetCollider());
-            const auto distance = resultEPA.distance;
-            const auto normal = resultEPA.normal;
-            static auto sDistance = 0.0f;
-            static auto sNormal = Vector3::ZERO;
-            if(resultGJK.collides) {
-                sDistance = distance;
-                sNormal = normal;
-            }
-            ImGui::Text("GJKDistance: %f", sDistance);
-            ImGui::Text("GJKDistance Normal: %f", sNormal);
-        } else {
-            ImGui::Text("GJKDistance: Invalid");
-        }
         {
             const auto b_size = _bodies.size();
             std::string header = std::string{"Bodies - "} + std::to_string(b_size);
