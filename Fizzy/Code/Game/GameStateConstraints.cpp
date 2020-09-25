@@ -2,6 +2,7 @@
 
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
+#include "Engine/Physics/RodJoint.hpp"
 
 #include "Engine/Renderer/Window.hpp"
 
@@ -25,6 +26,10 @@ void GameStateConstraints::OnEnter() noexcept {
     float y1 = screenY;
     float x2 = x1 + 55.0f;
     float y2 = y1;
+    float x3 = x2 + 55.0f;
+    float y3 = y2;
+    float x4 = x3 + 55.0f;
+    float y4 = y3;
     float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x1, y1)
@@ -34,8 +39,6 @@ void GameStateConstraints::OnEnter() noexcept {
                     ,PhysicsMaterial{0.0f, 0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
-    _bodies.back().EnableGravity(true);
-    _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
         Vector2(x2, y2)
         , Vector2::ZERO
@@ -44,8 +47,32 @@ void GameStateConstraints::OnEnter() noexcept {
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{0.0f}
     )));
+    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableDrag(false);
+
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x3, y3)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x3, y3), radius)
+        , PhysicsMaterial{0.0f, 0.0f}
+        , PhysicsDesc{0.0f}
+    )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
+
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x4, y4)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x4, y4), radius)
+        , PhysicsMaterial{0.0f, 0.0f}
+        , PhysicsDesc{0.0f}
+    )));
+    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableDrag(false);
+
+
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
         body_ptrs[i] = &_bodies[i];
@@ -57,6 +84,7 @@ void GameStateConstraints::OnEnter() noexcept {
     sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x2, y2}).CalcLength());
     sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x2, y2});
     sp_joint->SetStiffness(1.0f);
+    g_thePhysicsSystem->CreateJoint<RodJoint>(&_bodies[2], &_bodies[3]);    
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
