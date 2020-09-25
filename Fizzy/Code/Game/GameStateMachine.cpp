@@ -2,7 +2,7 @@
 
 #include "Engine/Core/ErrorWarningAssert.hpp"
 
-#include "Game/GameStatePhysics.hpp"
+#include "Game/GameStateGravityDrag.hpp"
 #include "Game/GameStateRestartCurrentState.hpp"
 
 bool GameStateMachine::HasStateChanged() const noexcept {
@@ -33,8 +33,8 @@ void GameStateMachine::OnEnterState(const GUID& enteringStateId) noexcept {
 }
 
 std::unique_ptr<IState> GameStateMachine::CreateStateFromId(const GUID& id) noexcept {
-    if(IsEqualGUID(id, GameStatePhysics::ID)) {
-        return std::make_unique<GameStatePhysics>();
+    if(IsEqualGUID(id, GameStateGravityDrag::ID)) {
+        return std::make_unique<GameStateGravityDrag>();
     } else if(IsEqualGUID(id, GameStateRestartCurrentState::ID)) {
         _nextStateId = _currentStateId;
         return CreateStateFromId(_currentStateId);

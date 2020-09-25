@@ -19,12 +19,12 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
-#include "Game/GameStatePhysics.hpp"
+#include "Game/GameStateGravityDrag.hpp"
 
 void Game::Initialize() {
     PROFILE_LOG_SCOPE_FUNCTION();
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
-    _state.ChangeState(GameStatePhysics::ID);
+    _state.ChangeState(GameStateGravityDrag::ID);
 }
 
 void Game::BeginFrame() {

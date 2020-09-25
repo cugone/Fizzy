@@ -3,7 +3,7 @@
 #include "Engine/Core/TimeUtils.hpp"
 
 #include "Game/IState.hpp"
-#include "Game/GameStatePhysics.hpp"
+#include "Game/GameStateGravityDrag.hpp"
 
 #include <cstdint>
 #include <memory>

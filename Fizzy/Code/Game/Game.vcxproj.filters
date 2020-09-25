@@ -43,10 +43,10 @@
     <ClCompile Include="GameStateMachine.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="GameStatePhysics.cpp">
+    <ClCompile Include="GameStateRestartCurrentState.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="GameStateRestartCurrentState.cpp">
+    <ClCompile Include="GameStateGravityDrag.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -69,10 +69,10 @@
     <ClInclude Include="IState.hpp">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="GameStatePhysics.hpp">
+    <ClInclude Include="GameStateRestartCurrentState.hpp">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="GameStateRestartCurrentState.hpp">
+    <ClInclude Include="GameStateGravityDrag.hpp">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

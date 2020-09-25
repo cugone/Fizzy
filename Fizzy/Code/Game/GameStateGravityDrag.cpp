@@ -1,4 +1,4 @@
-#include "Game/GameStatePhysics.hpp"
+#include "Game/GameStateGravityDrag.hpp"
 
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
@@ -8,7 +8,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
-void GameStatePhysics::OnEnter() noexcept {
+void GameStateGravityDrag::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
     const std::size_t maxBodies = 2;
@@ -85,7 +85,7 @@ void GameStatePhysics::OnEnter() noexcept {
     g_thePhysicsSystem->DebugShowCollision(true);
 }
 
-void GameStatePhysics::OnExit() noexcept {
+void GameStateGravityDrag::OnExit() noexcept {
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
     g_thePhysicsSystem->DebugShowCollision(false);
     g_thePhysicsSystem->Enable(false);
@@ -93,11 +93,11 @@ void GameStatePhysics::OnExit() noexcept {
 }
 
 
-void GameStatePhysics::BeginFrame() noexcept {
+void GameStateGravityDrag::BeginFrame() noexcept {
     /* DO NOTHING */
 }
 
-void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
+void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
         g_theApp->SetIsQuitting(true);
         return;
@@ -117,7 +117,7 @@ void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds
     HandleInput();
 }
 
-void GameStatePhysics::Render() const noexcept {
+void GameStateGravityDrag::Render() const noexcept {
     g_theRenderer->ResetModelViewProjection();
     g_theRenderer->SetRenderTargetsToBackBuffer();
     g_theRenderer->ClearDepthStencilBuffer();
@@ -147,7 +147,7 @@ void GameStatePhysics::Render() const noexcept {
 
 }
 
-void GameStatePhysics::EndFrame() noexcept {
+void GameStateGravityDrag::EndFrame() noexcept {
     if(_new_body_positions.empty()) {
         return;
     }
@@ -171,12 +171,12 @@ void GameStatePhysics::EndFrame() noexcept {
     _new_body_positions.clear();
 }
 
-void GameStatePhysics::HandleInput() noexcept {
+void GameStateGravityDrag::HandleInput() noexcept {
     HandleKeyboardInput();
     HandleMouseInput();
 }
 
-void GameStatePhysics::HandleKeyboardInput() noexcept {
+void GameStateGravityDrag::HandleKeyboardInput() noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::F1)) {
         ToggleShowDebugWindow();
     }
@@ -185,18 +185,18 @@ void GameStatePhysics::HandleKeyboardInput() noexcept {
     }
 }
 
-void GameStatePhysics::HandleMouseInput() noexcept {
+void GameStateGravityDrag::HandleMouseInput() noexcept {
     if(g_theUISystem->WantsInputMouseCapture()) {
         return;
     }
     Debug_AddBodyOrApplyForceAtMouseCoords();
 }
 
-void GameStatePhysics::ToggleShowDebugWindow() noexcept {
+void GameStateGravityDrag::ToggleShowDebugWindow() noexcept {
     _show_debug_window = !_show_debug_window;
 }
 
-void GameStatePhysics::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
+void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
     if(_debug_click_adds_bodies) {
         if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
             Debug_AddBodyAtMouseCoords();
@@ -208,19 +208,19 @@ void GameStatePhysics::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
     }
 }
 
-void GameStatePhysics::Debug_AddBodyAtMouseCoords() noexcept {
+void GameStateGravityDrag::Debug_AddBodyAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
     _new_body_positions.push_back(p);
 }
 
-void GameStatePhysics::Debug_ApplyImpulseAtMouseCoords() noexcept {
+void GameStateGravityDrag::Debug_ApplyImpulseAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
     _activeBody->ApplyImpulse(direction * 100.0f);
 }
 
-void GameStatePhysics::ShowDebugWindow() {
+void GameStateGravityDrag::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
         ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);

@@ -11,18 +11,18 @@
 
 #include <guiddef.h>
 
-class GameStatePhysics : public IState {
+class GameStateGravityDrag : public IState {
 public:
 
     // {4A8529AB-0CCE-44A4-B039-6ADEB8D270E0}
     static inline constexpr GUID ID = {0x4a8529ab, 0xcce, 0x44a4, { 0xb0, 0x39, 0x6a, 0xde, 0xb8, 0xd2, 0x70, 0xe0 }};
 
-    GameStatePhysics() = default;
-    GameStatePhysics(const GameStatePhysics& other) = default;
-    GameStatePhysics(GameStatePhysics&& other) = default;
-    GameStatePhysics& operator=(const GameStatePhysics& other) = default;
-    GameStatePhysics& operator=(GameStatePhysics&& other) = default;
-    virtual ~GameStatePhysics() = default;
+    GameStateGravityDrag() = default;
+    GameStateGravityDrag(const GameStateGravityDrag& other) = default;
+    GameStateGravityDrag(GameStateGravityDrag&& other) = default;
+    GameStateGravityDrag& operator=(const GameStateGravityDrag& other) = default;
+    GameStateGravityDrag& operator=(GameStateGravityDrag&& other) = default;
+    virtual ~GameStateGravityDrag() = default;
 
     void OnEnter() noexcept override;
     void OnExit() noexcept override;

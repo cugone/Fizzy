@@ -140,7 +140,7 @@
     <ClCompile Include="GameCommon.cpp" />
     <ClCompile Include="GameConfig.cpp" />
     <ClCompile Include="GameStateMachine.cpp" />
-    <ClCompile Include="GameStatePhysics.cpp" />
+    <ClCompile Include="GameStateGravityDrag.cpp" />
     <ClCompile Include="GameStateRestartCurrentState.cpp" />
     <ClCompile Include="Main_Win32.cpp" />
   </ItemGroup>
@@ -150,7 +150,7 @@
     <ClInclude Include="GameCommon.hpp" />
     <ClInclude Include="GameConfig.hpp" />
     <ClInclude Include="GameStateMachine.hpp" />
-    <ClInclude Include="GameStatePhysics.hpp" />
+    <ClInclude Include="GameStateGravityDrag.hpp" />
     <ClInclude Include="GameStateRestartCurrentState.hpp" />
     <ClInclude Include="IState.hpp" />
   </ItemGroup>
