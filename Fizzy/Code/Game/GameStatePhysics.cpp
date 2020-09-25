@@ -29,12 +29,12 @@ void GameStatePhysics::OnEnter() noexcept {
     float y3 = y2;
     float x4 = x3 + 55.0f;
     float y4 = y3;
-
+    float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x2, y2)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    ,new ColliderCircle(Vector2(x2, y2), 25.0f)
+                    ,new ColliderCircle(Vector2(x2, y2), radius)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{0.0f}
                     )));
@@ -44,7 +44,7 @@ void GameStatePhysics::OnEnter() noexcept {
                     Vector2(x1, y1)
                     ,Vector2::ZERO
                     ,Vector2::ZERO
-                    ,new ColliderCircle(Vector2(x1, y1), 25.0f)
+                    ,new ColliderCircle(Vector2(x1, y1), radius)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
@@ -54,7 +54,7 @@ void GameStatePhysics::OnEnter() noexcept {
                 Vector2(x3, y3)
                 ,Vector2::Y_AXIS
                 ,Vector2::ZERO
-                ,new ColliderCircle(Vector2(x3, y3), 25.0f)
+                ,new ColliderCircle(Vector2(x3, y3), radius)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
@@ -64,7 +64,7 @@ void GameStatePhysics::OnEnter() noexcept {
                 Vector2(x4, y4)
                 ,Vector2::ZERO
                 ,Vector2::ZERO
-                ,new ColliderCircle(Vector2(x4, y4), 25.0f)
+                ,new ColliderCircle(Vector2(x4, y4), radius)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
