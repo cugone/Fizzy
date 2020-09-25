@@ -50,6 +50,7 @@ private:
     std::vector<Vector2> _new_body_positions{};
     Vector2 _debug_point_on_body{};
     mutable Camera2D _ui_camera{};
+    RigidBody* _activeBody{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
     bool _debug_click_adds_bodies = false;

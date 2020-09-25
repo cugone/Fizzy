@@ -25,10 +25,10 @@ void GameStatePhysics::OnEnter() noexcept {
     float y1 = screenY;
     float x2 = x1 - 55.0f;
     float y2 = y1;
-    float x3 = x1 + 55.0f;
-    float y3 = y2;
-    float x4 = x3 + 55.0f;
-    float y4 = y3;
+    float x3 = x1;
+    float y3 = y1 + 55.0f;
+    float x4 = x1 + 55.0f;
+    float y4 = y1;
     float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x2, y2)
@@ -45,24 +45,24 @@ void GameStatePhysics::OnEnter() noexcept {
                     ,Vector2::ZERO
                     ,Vector2::ZERO
                     ,new ColliderCircle(Vector2(x1, y1), radius)
-                    ,PhysicsMaterial{0.0f, 0.0f}
+                    ,PhysicsMaterial{0.0f, 0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                 Vector2(x3, y3)
-                ,Vector2::Y_AXIS
+                ,Vector2::ZERO
                 ,Vector2::ZERO
                 ,new ColliderCircle(Vector2(x3, y3), radius)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
-    _bodies.back().EnableGravity(false);
-    _bodies.back().EnableDrag(true);
+    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                 Vector2(x4, y4)
-                ,Vector2::ZERO
+                ,Vector2::Y_AXIS
                 ,Vector2::ZERO
                 ,new ColliderCircle(Vector2(x4, y4), radius)
                 ,PhysicsMaterial{0.0f, 0.0f}
@@ -76,10 +76,10 @@ void GameStatePhysics::OnEnter() noexcept {
     }
     g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
-    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[3]);
+    _activeBody = &_bodies[2];
+    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[1], &_bodies[2]);
     sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x3, y3});
-    sp_joint->SetMinimumCompressionDistance(50.0f);
-    sp_joint->SetStiffness(2.5f);
+    sp_joint->SetStiffness(1.0f);
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
@@ -112,7 +112,7 @@ void GameStatePhysics::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds
     Camera2D& base_camera = _ui_camera;
     base_camera.Update(deltaSeconds);
 
-    _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_bodies[3].GetCollider());
+    _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_activeBody->GetCollider());
     HandleInput();
 }
 
@@ -213,11 +213,10 @@ void GameStatePhysics::Debug_AddBodyAtMouseCoords() noexcept {
 }
 
 void GameStatePhysics::Debug_ApplyImpulseAtMouseCoords() noexcept {
-    auto& body = _bodies[3];
     const auto p = g_theInputSystem->GetMouseCoords();
-    const auto point_on_body = MathUtils::CalcClosestPoint(p, *body.GetCollider());
+    const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
-    body.ApplyImpulse(direction * 100.0f);
+    _activeBody->ApplyImpulse(direction * 100.0f);
 }
 
 void GameStatePhysics::ShowDebugWindow() {
