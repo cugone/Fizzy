@@ -162,6 +162,7 @@ void GameStateGravityDrag::EndFrame() noexcept {
     for(auto i = std::size_t{0u}; i < new_size; ++i) {
         new_body_ptrs[i] = &_bodies[i];
     }
+    _activeBody = &_bodies[2];
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
     g_thePhysicsSystem->AddObjects(new_body_ptrs);
     _new_body_positions.clear();
