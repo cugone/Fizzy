@@ -152,7 +152,7 @@ void GameStateGravityDrag::EndFrame() noexcept {
             pos
             , Vector2::ZERO
             , Vector2::ZERO
-            , new ColliderCircle(pos, 25.0f)
+            , new ColliderCircle(pos, 0.25f)
             , PhysicsMaterial{}
             , PhysicsDesc{}
         )));
