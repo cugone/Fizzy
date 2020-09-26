@@ -58,7 +58,7 @@ void GameStateConstraints::OnEnter() noexcept {
         , Vector2::ZERO
         , Vector2::ZERO
         , new ColliderCircle(Vector2(x3, y3), radius)
-        , PhysicsMaterial{0.0f, 0.0f}
+        , PhysicsMaterial{0.0f, 0.0f, 0.0f}
         , PhysicsDesc{0.0f}
     )));
     _bodies.back().EnableGravity(false);
@@ -69,7 +69,7 @@ void GameStateConstraints::OnEnter() noexcept {
         , Vector2::ZERO
         , Vector2::ZERO
         , new ColliderCircle(Vector2(x4, y4), radius)
-        , PhysicsMaterial{0.0f, 0.0f}
+        , PhysicsMaterial{0.0f, 0.0f, 5.0f}
         , PhysicsDesc{0.0f}
     )));
     _bodies.back().EnableGravity(true);
