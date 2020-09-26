@@ -152,27 +152,7 @@ void GameStateConstraints::Render() const noexcept {
 }
 
 void GameStateConstraints::EndFrame() noexcept {
-    if(_new_body_positions.empty()) {
-        return;
-    }
-    for(const auto& pos : _new_body_positions) {
-        _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-            pos
-            , Vector2::ZERO
-            , Vector2::ZERO
-            , new ColliderCircle(pos, 25.0f)
-            , PhysicsMaterial{}
-            , PhysicsDesc{}
-        )));
-    }
-    const auto new_size = _bodies.size();
-    auto new_body_ptrs = std::vector<RigidBody*>(new_size);
-    for(auto i = std::size_t{0u}; i < new_size; ++i) {
-        new_body_ptrs[i] = &_bodies[i];
-    }
-    g_thePhysicsSystem->RemoveAllObjectsImmediately();
-    g_thePhysicsSystem->AddObjects(new_body_ptrs);
-    _new_body_positions.clear();
+    /* DO NOTHING */
 }
 
 void GameStateConstraints::HandleInput() noexcept {
