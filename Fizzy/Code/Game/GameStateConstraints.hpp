@@ -58,4 +58,5 @@ private:
     bool _show_world_partition = true;
     bool _show_collision = true;
     bool _show_joints = true;
+    static inline std::size_t  _selected_body = 0u;
 };
