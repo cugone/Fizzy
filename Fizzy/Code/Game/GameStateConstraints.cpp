@@ -44,7 +44,7 @@ void GameStateConstraints::OnEnter() noexcept {
                     ,Vector2::ZERO
                     ,Vector2::ZERO
                     ,new ColliderCircle(Vector2(x1, y1), radius)
-                    ,PhysicsMaterial{0.0f, 0.0f, 0.0f}
+                    ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
@@ -108,7 +108,7 @@ void GameStateConstraints::OnEnter() noexcept {
     auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[1]);
     sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x2, y2}).CalcLength());
     sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x2, y2});
-    sp_joint->SetStiffness(10.0f);
+    sp_joint->SetStiffness(5.0f);
 
     g_thePhysicsSystem->CreateJoint<RodJoint>(&_bodies[2], &_bodies[3]);    
 
