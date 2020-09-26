@@ -212,6 +212,8 @@ void GameStateConstraints::ShowDebugWindow() {
         ImGui::Checkbox("Show Collision", &_show_collision);
         ImGui::Checkbox("Show Joints", &_show_joints);
         const auto b_size = _bodies.size();
+        const auto distance_between_b2b3 = MathUtils::CalcDistance(_bodies[2].GetPosition(), _bodies[3].GetPosition());
+        ImGui::Text("B2B3 Distance: %.02f", distance_between_b2b3);
         std::vector<std::string> items{};
         items.resize(b_size);
         for(std::size_t i = 0u; i < b_size; ++i) {
