@@ -62,6 +62,7 @@ void Game::ShowDemoSelectionWindow() noexcept {
                 case 1:
                     _state.ChangeState(GameStateConstraints::ID);
                     break;
+                default: ERROR_AND_DIE("Game State values have changed. Refactor Demo GUI code.");
                 }
             }
             ImGui::EndCombo();
