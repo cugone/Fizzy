@@ -77,6 +77,9 @@ void GameStateGravityDrag::OnEnter() noexcept {
     g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
     _activeBody = &_bodies[2];
+    if(_selected_body >= _bodies.size()) {
+        _selected_body = 0u;
+    }
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
 }
