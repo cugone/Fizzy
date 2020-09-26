@@ -9,6 +9,9 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
+#include <string>
+#include <vector>
+
 void GameStateConstraints::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
