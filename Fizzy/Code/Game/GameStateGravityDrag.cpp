@@ -223,8 +223,28 @@ void GameStateGravityDrag::ShowDebugWindow() {
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
         ImGui::Checkbox("Show Joints", &_show_joints);
+        const auto b_size = _bodies.size();
+        std::vector<std::string> items{};
+        items.resize(b_size);
+        for(std::size_t i = 0u; i < b_size; ++i) {
+            items[i] = std::string{"Body "} + std::to_string(i);
+        }
+        std::string current_item = items[_selected_body];
+        if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
+            for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
+                bool is_selected = current_item == *it;
+                if(ImGui::Selectable((*it).c_str(), is_selected)) {
+                    current_item = *it;
+                    _selected_body = std::distance(std::cbegin(items), it);
+                }
+                if(is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        _activeBody = &_bodies[_selected_body];
         {
-            const auto b_size = _bodies.size();
             std::string header = std::string{"Bodies - "} + std::to_string(b_size);
             if(ImGui::CollapsingHeader(header.c_str())) {
                 for(std::size_t i = 0; i < b_size; ++i) {

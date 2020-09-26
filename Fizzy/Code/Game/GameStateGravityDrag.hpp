@@ -49,6 +49,7 @@ private:
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_body_positions{};
     Vector2 _debug_point_on_body{};
+    static inline std::size_t _selected_body{0u};
     mutable Camera2D _ui_camera{};
     RigidBody* _activeBody{};
     bool _isGravityEnabled = true;
