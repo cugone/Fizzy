@@ -3,6 +3,7 @@
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
 #include "Engine/Physics/RodJoint.hpp"
+#include "Engine/Physics/CableJoint.hpp"
 
 #include "Engine/Renderer/Window.hpp"
 
@@ -33,6 +34,10 @@ void GameStateConstraints::OnEnter() noexcept {
     float y3 = y2;
     float x4 = x3 + 55.0f;
     float y4 = y3;
+    float x5 = x4 + 55.0f;
+    float y5 = y4;
+    float x6 = x5 + 55.0f;
+    float y6 = y5;
     float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Vector2(x1, y1)
@@ -76,20 +81,49 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableDrag(false);
 
 
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x5, y5)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x5, y5), radius)
+        , PhysicsMaterial{0.0f, 0.0f, 0.0f}
+        , PhysicsDesc{0.0f}
+    )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
+
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x6, y6)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x6, y6), radius)
+        , PhysicsMaterial{0.0f, 0.0f, 10.0f}
+        , PhysicsDesc{0.0f}
+    )));
+    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableDrag(false);
+
+    _activeBody = &_bodies[1];
+
+    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[1]);
+    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x2, y2}).CalcLength());
+    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x2, y2});
+    sp_joint->SetStiffness(10.0f);
+
+    g_thePhysicsSystem->CreateJoint<RodJoint>(&_bodies[2], &_bodies[3]);    
+
+    g_thePhysicsSystem->CreateJoint<CableJoint>(&_bodies[4], &_bodies[5]);
+
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
         body_ptrs[i] = &_bodies[i];
     }
     g_thePhysicsSystem->SetWorldDescription(physicsSystemDesc);
     g_thePhysicsSystem->AddObjects(body_ptrs);
-    _activeBody = &_bodies[1];
-    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[1]);
-    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x2, y2}).CalcLength());
-    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x2, y2});
-    sp_joint->SetStiffness(1.0f);
-    g_thePhysicsSystem->CreateJoint<RodJoint>(&_bodies[2], &_bodies[3]);    
+
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->DebugShowCollision(true);
+
 }
 
 void GameStateConstraints::OnExit() noexcept {
@@ -214,6 +248,8 @@ void GameStateConstraints::ShowDebugWindow() {
         const auto b_size = _bodies.size();
         const auto distance_between_b2b3 = MathUtils::CalcDistance(_bodies[2].GetPosition(), _bodies[3].GetPosition());
         ImGui::Text("B2B3 Distance: %.02f", distance_between_b2b3);
+        const auto distance_between_b4b5 = MathUtils::CalcDistance(_bodies[4].GetPosition(), _bodies[5].GetPosition());
+        ImGui::Text("B4B5 Distance: %.02f", distance_between_b4b5);
         std::vector<std::string> items{};
         items.resize(b_size);
         for(std::size_t i = 0u; i < b_size; ++i) {
