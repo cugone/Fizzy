@@ -105,14 +105,22 @@ void GameStateConstraints::OnEnter() noexcept {
 
     _activeBody = &_bodies[1];
 
-    auto* sp_joint = g_thePhysicsSystem->CreateJoint<SpringJoint>(&_bodies[0], &_bodies[1]);
-    sp_joint->SetRestingLength((Vector2{x1, y1} - Vector2{x2, y2}).CalcLength());
-    sp_joint->SetAnchors(Vector2{x1, y1}, Vector2{x2, y2});
-    sp_joint->SetStiffness(5.0f);
+    SpringJointDef spring{};
+    spring.rigidBodyA = &_bodies[0];
+    spring.rigidBodyA = &_bodies[1];
+    spring.k = 5.0f;
+    spring.restingLength = MathUtils::CalcDistance(Vector2{x1,y1}, Vector2{x2,y2});
+    g_thePhysicsSystem->CreateJoint(spring);
 
-    g_thePhysicsSystem->CreateJoint<RodJoint>(&_bodies[2], &_bodies[3]);    
+    RodJointDef rod{};
+    rod.rigidBodyA = &_bodies[0];
+    rod.rigidBodyA = &_bodies[1];
+    g_thePhysicsSystem->CreateJoint(rod);
 
-    g_thePhysicsSystem->CreateJoint<CableJoint>(&_bodies[4], &_bodies[5]);
+    CableJointDef cable{};
+    cable.rigidBodyA = &_bodies[4];
+    cable.rigidBodyB = &_bodies[5];
+    g_thePhysicsSystem->CreateJoint(cable);
 
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
