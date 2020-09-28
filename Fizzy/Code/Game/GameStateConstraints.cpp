@@ -109,7 +109,7 @@ void GameStateConstraints::OnEnter() noexcept {
     spring.rigidBodyA = &_bodies[0];
     spring.rigidBodyB = &_bodies[1];
     spring.k = 5.0f;
-    spring.restingLength = 55.0f;
+    spring.length = 55.0f;
     g_thePhysicsSystem->CreateJoint(spring);
 
     RodJointDef rod{};
