@@ -103,7 +103,6 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
     }
     g_thePhysicsSystem->DebugShowWorldPartition(_show_world_partition);
     g_thePhysicsSystem->DebugShowCollision(_show_collision);
-    g_thePhysicsSystem->DebugShowJoints(_show_joints);
     g_theRenderer->UpdateGameTime(deltaSeconds);
     if(_show_debug_window) {
         ShowDebugWindow();
@@ -225,54 +224,64 @@ void GameStateGravityDrag::ShowDebugWindow() {
         ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
-        ImGui::Checkbox("Show Joints", &_show_joints);
-        const auto b_size = _bodies.size();
-        std::vector<std::string> items{};
-        items.resize(b_size);
-        for(std::size_t i = 0u; i < b_size; ++i) {
-            items[i] = std::string{"Body "} + std::to_string(i);
-        }
-        std::string current_item = items[_selected_body];
-        if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
-            for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
-                bool is_selected = current_item == *it;
-                if(ImGui::Selectable((*it).c_str(), is_selected)) {
-                    current_item = *it;
-                    _selected_body = std::distance(std::cbegin(items), it);
-                }
-                if(is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
-        _activeBody = &_bodies[_selected_body];
-        {
-            std::string header = std::string{"Bodies - "} + std::to_string(b_size);
-            if(ImGui::CollapsingHeader(header.c_str())) {
-                for(std::size_t i = 0; i < b_size; ++i) {
-                    const auto* body = &_bodies[i];
-                    if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
-                        const auto acc = body->GetAcceleration();
-                        const auto vel = body->GetVelocity();
-                        const auto pos = body->GetPosition();
-                        const auto aacc = body->GetAngularAccelerationDegrees();
-                        const auto avel = body->GetAngularVelocityDegrees();
-                        const auto apos = body->GetOrientationDegrees();
-                        const auto mass = body->GetMass();
-                        ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
-                        ImGui::Text("M: %f", mass);
-                        ImGui::Text("A: [%f, %f]", acc.x, acc.y);
-                        ImGui::Text("V: [%f, %f]", vel.x, vel.y);
-                        ImGui::Text("P: [%f, %f]", pos.x, pos.y);
-                        ImGui::Text("oA: %f", aacc);
-                        ImGui::Text("oV: %f", avel);
-                        ImGui::Text("oP: %f", apos);
-                        ImGui::TreePop();
-                    }
-                }
-            }
-        }
+        Debug_SelectedBodiesComboBoxUI();
+        Debug_ShowBodiesUI();
         ImGui::End();
     }
+}
+
+void GameStateGravityDrag::Debug_SelectedBodiesComboBoxUI() {
+    const auto b_size = _bodies.size();
+    std::vector<std::string> items{};
+    items.resize(b_size);
+    for(std::size_t i = 0u; i < b_size; ++i) {
+        items[i] = std::string{"Body "} + std::to_string(i);
+    }
+    std::string current_item = items[_selected_body];
+    if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
+        for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
+            bool is_selected = current_item == *it;
+            if(ImGui::Selectable((*it).c_str(), is_selected)) {
+                current_item = *it;
+                _selected_body = std::distance(std::cbegin(items), it);
+            }
+            if(is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    _activeBody = &_bodies[_selected_body];
+}
+
+void GameStateGravityDrag::Debug_ShowBodiesUI() {
+    const auto b_size = _bodies.size();
+    std::string header = std::string{"Bodies - "} + std::to_string(b_size);
+    if(ImGui::CollapsingHeader(header.c_str())) {
+        for(std::size_t i = 0; i < b_size; ++i) {
+            const auto* body = &_bodies[i];
+            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
+                Debug_ShowBodyParametersUI(body);
+                ImGui::TreePop();
+            }
+        }
+    }
+}
+
+void GameStateGravityDrag::Debug_ShowBodyParametersUI(const RigidBody* const body) {
+    const auto acc = body->GetAcceleration();
+    const auto vel = body->GetVelocity();
+    const auto pos = body->GetPosition();
+    const auto aacc = body->GetAngularAccelerationDegrees();
+    const auto avel = body->GetAngularVelocityDegrees();
+    const auto apos = body->GetOrientationDegrees();
+    const auto mass = body->GetMass();
+    ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
+    ImGui::Text("M: %f", mass);
+    ImGui::Text("A: [%f, %f]", acc.x, acc.y);
+    ImGui::Text("V: [%f, %f]", vel.x, vel.y);
+    ImGui::Text("P: [%f, %f]", pos.x, pos.y);
+    ImGui::Text("oA: %f", aacc);
+    ImGui::Text("oV: %f", avel);
+    ImGui::Text("oP: %f", apos);
 }

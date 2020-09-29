@@ -45,6 +45,10 @@ private:
     void Debug_AddBodyOrApplyForceAtMouseCoords() noexcept;
     void Debug_AddBodyAtMouseCoords() noexcept;
     void Debug_ApplyImpulseAtMouseCoords() noexcept;
+    
+    void Debug_ShowBodiesUI();
+    void Debug_ShowBodyParametersUI(const RigidBody* const body);
+    void Debug_SelectedBodiesComboBoxUI();
 
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_body_positions{};
@@ -58,5 +62,4 @@ private:
     bool _show_debug_window = true;
     bool _show_world_partition = true;
     bool _show_collision = true;
-    bool _show_joints = true;
 };

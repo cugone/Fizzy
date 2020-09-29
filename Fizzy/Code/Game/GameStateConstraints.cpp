@@ -255,57 +255,97 @@ void GameStateConstraints::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
         ImGui::Checkbox("Show Collision", &_show_collision);
         ImGui::Checkbox("Show Joints", &_show_joints);
-        const auto b_size = _bodies.size();
-        const auto distance_between_b2b3 = MathUtils::CalcDistance(_bodies[2].GetPosition(), _bodies[3].GetPosition());
-        ImGui::Text("B2B3 Distance: %.02f", distance_between_b2b3);
-        const auto distance_between_b4b5 = MathUtils::CalcDistance(_bodies[4].GetPosition(), _bodies[5].GetPosition());
-        ImGui::Text("B4B5 Distance: %.02f", distance_between_b4b5);
-        std::vector<std::string> items{};
-        items.resize(b_size);
-        for(std::size_t i = 0u; i < b_size; ++i) {
-            items[i] = std::string{"Body "} + std::to_string(i);
-        }
-        std::string current_item = items[_selected_body];
-        if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
-            for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
-                bool is_selected = current_item == *it;
-                if(ImGui::Selectable((*it).c_str(), is_selected)) {
-                    current_item = *it;
-                    _selected_body = std::distance(std::cbegin(items), it);
-                }
-                if(is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
+        Debug_SelectedBodiesComboBoxUI();
+        Debug_ShowBodiesUI();
+        Debug_ShowJointsUI();
+        ImGui::End();
+    }
+}
+
+void GameStateConstraints::Debug_SelectedBodiesComboBoxUI() {
+    const auto b_size = _bodies.size();
+    const auto distance_between_b2b3 = MathUtils::CalcDistance(_bodies[2].GetPosition(), _bodies[3].GetPosition());
+    ImGui::Text("B2B3 Distance: %.02f", distance_between_b2b3);
+    const auto distance_between_b4b5 = MathUtils::CalcDistance(_bodies[4].GetPosition(), _bodies[5].GetPosition());
+    ImGui::Text("B4B5 Distance: %.02f", distance_between_b4b5);
+    std::vector<std::string> items{};
+    items.resize(b_size);
+    for(std::size_t i = 0u; i < b_size; ++i) {
+        items[i] = std::string{"Body "} + std::to_string(i);
+    }
+    std::string current_item = items[_selected_body];
+    if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
+        for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
+            bool is_selected = current_item == *it;
+            if(ImGui::Selectable((*it).c_str(), is_selected)) {
+                current_item = *it;
+                _selected_body = std::distance(std::cbegin(items), it);
             }
-            ImGui::EndCombo();
+            if(is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
         }
-        _activeBody = &_bodies[_selected_body];
-        {
-            std::string header = std::string{"Bodies - "} + std::to_string(b_size);
-            if(ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                for(std::size_t i = 0; i < b_size; ++i) {
-                    const auto* body = &_bodies[i];
-                    if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
-                        const auto acc = body->GetAcceleration();
-                        const auto vel = body->GetVelocity();
-                        const auto pos = body->GetPosition();
-                        const auto aacc = body->GetAngularAccelerationDegrees();
-                        const auto avel = body->GetAngularVelocityDegrees();
-                        const auto apos = body->GetOrientationDegrees();
-                        const auto mass = body->GetMass();
-                        ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
-                        ImGui::Text("M: %f", mass);
-                        ImGui::Text("A: [%f, %f]", acc.x, acc.y);
-                        ImGui::Text("V: [%f, %f]", vel.x, vel.y);
-                        ImGui::Text("P: [%f, %f]", pos.x, pos.y);
-                        ImGui::Text("oA: %f", aacc);
-                        ImGui::Text("oV: %f", avel);
-                        ImGui::Text("oP: %f", apos);
+        ImGui::EndCombo();
+    }
+    _activeBody = &_bodies[_selected_body];
+}
+
+void GameStateConstraints::Debug_ShowBodiesUI() {
+    const auto b_size = _bodies.size();
+    std::string header = std::string{"Bodies - "} + std::to_string(b_size);
+    if(ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+        for(std::size_t i = 0; i < b_size; ++i) {
+            const auto* body = &_bodies[i];
+            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
+                Debug_ShowBodyParametersUI(body);
+                ImGui::TreePop();
+            }
+        }
+    }
+}
+
+void GameStateConstraints::Debug_ShowJointsUI() {
+    _activeJoint = nullptr;
+    const auto& joints = g_thePhysicsSystem->Debug_GetJoints();
+    const auto j_size = joints.size();
+    std::string joints_header = std::string{"Joints - "} + std::to_string(j_size);
+    if(ImGui::CollapsingHeader(joints_header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+        for(std::size_t i = 0; i < j_size; ++i) {
+            const auto& joint = *joints[i].get();
+            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Joint %d", i)) {
+                const auto* const bodyA = joint.GetBodyA();
+                const auto* const bodyB = joint.GetBodyB();
+                const auto anchorA = joint.GetAnchorA();
+                const auto anchorB = joint.GetAnchorB();
+                for(std::size_t j = 0; j < 2; ++j) {
+                    std::string joints_body_header{};
+                    if(j == 0) joints_body_header = "Body A";
+                    if(j == 1) joints_body_header = "Body B";
+                    if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(j)), joints_body_header.c_str())) {
+                        Debug_ShowBodyParametersUI(j == 0 ? bodyA : bodyB);
                         ImGui::TreePop();
                     }
                 }
+                ImGui::TreePop();
             }
         }
-        ImGui::End();
     }
+}
+
+void GameStateConstraints::Debug_ShowBodyParametersUI(const RigidBody* const body) {
+    const auto acc = body->GetAcceleration();
+    const auto vel = body->GetVelocity();
+    const auto pos = body->GetPosition();
+    const auto aacc = body->GetAngularAccelerationDegrees();
+    const auto avel = body->GetAngularVelocityDegrees();
+    const auto apos = body->GetOrientationDegrees();
+    const auto mass = body->GetMass();
+    ImGui::Text("Awake: %s", (body->IsAwake() ? "true" : "false"));
+    ImGui::Text("M: %f", mass);
+    ImGui::Text("A: [%f, %f]", acc.x, acc.y);
+    ImGui::Text("V: [%f, %f]", vel.x, vel.y);
+    ImGui::Text("P: [%f, %f]", pos.x, pos.y);
+    ImGui::Text("oA: %f", aacc);
+    ImGui::Text("oV: %f", avel);
+    ImGui::Text("oP: %f", apos);
 }
