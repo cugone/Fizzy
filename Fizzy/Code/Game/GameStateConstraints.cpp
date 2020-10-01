@@ -16,7 +16,7 @@
 void GameStateConstraints::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
-    const std::size_t maxBodies = 2;
+    const std::size_t maxBodies = 10;
     _bodies.clear();
     _bodies.reserve(maxBodies);
     float screenX = width * 0.50f;
@@ -103,26 +103,121 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
 
-    _activeBody = &_bodies[1];
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x1, y1 + 110.0f)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x1, y1 + 110.0f), radius)
+        , PhysicsMaterial{0.0f, 0.0f, 2.0f}
+        , PhysicsDesc{}
+    )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
 
-    SpringJointDef spring{};
-    spring.rigidBodyA = &_bodies[0];
-    spring.rigidBodyB = &_bodies[1];
-    spring.k = 1.0f;
-    spring.length = 55.0f;
-    g_thePhysicsSystem->CreateJoint(spring);
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x1 + 110.0f, y1 + 110.0f)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x1 + 110.0f, y1 + 110.0f), radius)
+        , PhysicsMaterial{0.0f, 0.0f, 2.0f}
+        , PhysicsDesc{}
+    )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
 
-    RodJointDef rod{};
-    rod.rigidBodyA = &_bodies[2];
-    rod.rigidBodyB = &_bodies[3];
-    rod.length = 55.0f;
-    g_thePhysicsSystem->CreateJoint(rod);
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x1 + 110.0f, y1 + 220.0f)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x1 + 110.0f, y1 + 220.0f), radius)
+        , PhysicsMaterial{0.0f, 0.0f, 2.0f}
+        , PhysicsDesc{}
+    )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
 
-    CableJointDef cable{};
-    cable.rigidBodyA = &_bodies[4];
-    cable.rigidBodyB = &_bodies[5];
-    cable.length = 55.0f;
-    g_thePhysicsSystem->CreateJoint(cable);
+    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        Vector2(x1, y1 + 220.0f)
+        , Vector2::ZERO
+        , Vector2::ZERO
+        , new ColliderCircle(Vector2(x1, y1 + 220.0f), radius)
+        , PhysicsMaterial{0.0f, 0.0f, 2.0f}
+        , PhysicsDesc{}
+    )));
+    _bodies.back().EnableGravity(false);
+    _bodies.back().EnableDrag(false);
+
+
+    _activeBody = &_bodies[0];
+
+    {
+        SpringJointDef spring{};
+        spring.rigidBodyA = &_bodies[0];
+        spring.rigidBodyB = &_bodies[1];
+        spring.k = 1.0f;
+        spring.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(spring));
+    }
+
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[2];
+        rod.rigidBodyB = &_bodies[3];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+
+    {
+        CableJointDef cable{};
+        cable.rigidBodyA = &_bodies[4];
+        cable.rigidBodyB = &_bodies[5];
+        cable.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(cable));
+    }
+
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[6];
+        rod.rigidBodyB = &_bodies[7];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[6];
+        rod.rigidBodyB = &_bodies[8];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[6];
+        rod.rigidBodyB = &_bodies[9];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[8];
+        rod.rigidBodyB = &_bodies[7];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[8];
+        rod.rigidBodyB = &_bodies[9];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+    {
+        RodJointDef rod{};
+        rod.rigidBodyA = &_bodies[7];
+        rod.rigidBodyB = &_bodies[9];
+        rod.length = 55.0f;
+        _joints.push_back(g_thePhysicsSystem->CreateJoint(rod));
+    }
+
 
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {

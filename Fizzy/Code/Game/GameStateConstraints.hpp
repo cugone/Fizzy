@@ -52,6 +52,7 @@ private:
     void Debug_ShowBodyParametersUI(const RigidBody* const body);
 
     std::vector<RigidBody> _bodies{};
+    std::vector<Joint*> _joints{};
     std::vector<Vector2> _new_body_positions{};
     Vector2 _debug_point_on_body{};
     mutable Camera2D _ui_camera{};
