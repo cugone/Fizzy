@@ -81,12 +81,12 @@ void GameStateGravityDrag::OnEnter() noexcept {
         _selected_body = 0u;
     }
     g_thePhysicsSystem->Enable(true);
-    g_thePhysicsSystem->DebugShowCollision(true);
+    g_thePhysicsSystem->Debug_ShowCollision(true);
 }
 
 void GameStateGravityDrag::OnExit() noexcept {
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
-    g_thePhysicsSystem->DebugShowCollision(false);
+    g_thePhysicsSystem->Debug_ShowCollision(false);
     g_thePhysicsSystem->Enable(false);
     _bodies.clear();
 }
@@ -101,8 +101,8 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
         g_theApp->SetIsQuitting(true);
         return;
     }
-    g_thePhysicsSystem->DebugShowWorldPartition(_show_world_partition);
-    g_thePhysicsSystem->DebugShowCollision(_show_collision);
+    g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
+    g_thePhysicsSystem->Debug_ShowCollision(_show_collision);
     g_theRenderer->UpdateGameTime(deltaSeconds);
     if(_show_debug_window) {
         ShowDebugWindow();

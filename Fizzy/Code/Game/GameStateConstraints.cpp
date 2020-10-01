@@ -227,13 +227,13 @@ void GameStateConstraints::OnEnter() noexcept {
     g_thePhysicsSystem->AddObjects(body_ptrs);
 
     g_thePhysicsSystem->Enable(true);
-    g_thePhysicsSystem->DebugShowCollision(true);
+    g_thePhysicsSystem->Debug_ShowCollision(true);
 
 }
 
 void GameStateConstraints::OnExit() noexcept {
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
-    g_thePhysicsSystem->DebugShowCollision(false);
+    g_thePhysicsSystem->Debug_ShowCollision(false);
     g_thePhysicsSystem->Enable(false);
     _bodies.clear();
 }
@@ -248,9 +248,9 @@ void GameStateConstraints::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
         g_theApp->SetIsQuitting(true);
         return;
     }
-    g_thePhysicsSystem->DebugShowWorldPartition(_show_world_partition);
-    g_thePhysicsSystem->DebugShowCollision(_show_collision);
-    g_thePhysicsSystem->DebugShowJoints(_show_joints);
+    g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
+    g_thePhysicsSystem->Debug_ShowCollision(_show_collision);
+    g_thePhysicsSystem->Debug_ShowJoints(_show_joints);
     g_theRenderer->UpdateGameTime(deltaSeconds);
     if(_show_debug_window) {
         ShowDebugWindow();
