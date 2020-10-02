@@ -24,7 +24,6 @@
 #include <array>
 
 void Game::Initialize() {
-    PROFILE_LOG_SCOPE_FUNCTION();
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
     _state.ChangeState(GameStateGravityDrag::ID);
 }
