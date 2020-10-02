@@ -16,9 +16,6 @@
 void GameStateConstraints::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
-    const std::size_t maxBodies = 10;
-    _bodies.clear();
-    _bodies.reserve(maxBodies);
     float screenX = width * 0.50f;
     float screenY = height * 0.50f;
     const auto world_dims = g_theRenderer->GetOutput()->GetDimensions();
@@ -344,7 +341,7 @@ void GameStateConstraints::Debug_ApplyImpulseAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
-    _activeBody->ApplyImpulse(direction * 100.0f);
+    _activeBody->ApplyImpulse(direction * 10000.0f);
 }
 
 void GameStateConstraints::ShowDebugWindow() {
