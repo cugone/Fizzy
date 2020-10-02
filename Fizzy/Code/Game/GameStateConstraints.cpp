@@ -236,6 +236,7 @@ void GameStateConstraints::OnExit() noexcept {
     g_thePhysicsSystem->Debug_ShowCollision(false);
     g_thePhysicsSystem->Enable(false);
     _bodies.clear();
+    _joints.clear();
 }
 
 
