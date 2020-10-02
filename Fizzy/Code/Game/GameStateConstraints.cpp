@@ -37,17 +37,17 @@ void GameStateConstraints::OnEnter() noexcept {
     float y6 = y5;
     float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Vector2(x1, y1)
-                    ,Vector2::ZERO
-                    ,Vector2::ZERO
+                     Position{x1, y1}
+                    , Velocity{}
+                    , Acceleration{}
                     ,new ColliderCircle(Vector2(x1, y1), radius)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-        Vector2(x2, y2)
-        , Vector2::ZERO
-        , Vector2::ZERO
+        Position(x2, y2)
+        , Velocity{}
+        , Acceleration{}
         , new ColliderCircle(Vector2(x2, y2), radius)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{0.0f}
@@ -56,9 +56,9 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableDrag(false);
 
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-        Vector2(x3, y3)
-        , Vector2::ZERO
-        , Vector2::ZERO
+        Position{x3, y3}
+        , Velocity{}
+        , Acceleration{}
         , new ColliderCircle(Vector2(x3, y3), radius)
         , PhysicsMaterial{0.0f, 0.0f, 0.0f}
         , PhysicsDesc{0.0f}
@@ -67,9 +67,9 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableDrag(false);
 
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-        Vector2(x4, y4)
-        , Vector2::ZERO
-        , Vector2::ZERO
+        Position{x4, y4}
+        , Velocity{}
+        , Acceleration{}
         , new ColliderCircle(Vector2(x4, y4), radius)
         , PhysicsMaterial{0.0f, 0.0f, 5.0f}
         , PhysicsDesc{0.0f}
@@ -79,9 +79,9 @@ void GameStateConstraints::OnEnter() noexcept {
 
 
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-        Vector2(x5, y5)
-        , Vector2::ZERO
-        , Vector2::ZERO
+        Position{x5, y5}
+        , Velocity{}
+        , Acceleration{}
         , new ColliderCircle(Vector2(x5, y5), radius)
         , PhysicsMaterial{0.0f, 0.0f, 0.0f}
         , PhysicsDesc{0.0f}
@@ -90,9 +90,9 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableDrag(false);
 
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-        Vector2(x6, y6)
-        , Vector2::ZERO
-        , Vector2::ZERO
+        Position{x6, y6}
+        , Velocity{}
+        , Acceleration{}
         , new ColliderCircle(Vector2(x6, y6), radius)
         , PhysicsMaterial{0.0f, 0.0f, 10.0f}
         , PhysicsDesc{0.0f}

@@ -31,9 +31,9 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float y4 = y1;
     float radius = 0.25f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Vector2(x2, y2)
-                    ,Vector2::ZERO
-                    ,Vector2::ZERO
+                    Position{x2, y2}
+                    ,Velocity{}
+                    ,Acceleration{}
                     ,new ColliderCircle(Vector2(x2, y2), radius)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{0.0f}
@@ -41,29 +41,29 @@ void GameStateGravityDrag::OnEnter() noexcept {
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Vector2(x1, y1)
-                    ,Vector2::ZERO
-                    ,Vector2::ZERO
-                    ,new ColliderCircle(Vector2(x1, y1), radius)
+                    Position{x1, y1}
+                    , Velocity{}
+                    , Acceleration{}
+                    , new ColliderCircle(Vector2(x1, y1), radius)
                     ,PhysicsMaterial{0.0f, 0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                Vector2(x3, y3)
-                ,Vector2::ZERO
-                ,Vector2::ZERO
-                ,new ColliderCircle(Vector2(x3, y3), radius)
+                Position{x3, y3}
+                , Velocity{}
+                , Acceleration{}
+                , new ColliderCircle(Vector2(x3, y3), radius)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
                 )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                Vector2(x4, y4)
-                ,Vector2::Y_AXIS
-                ,Vector2::ZERO
+                Position{x4, y4}
+                , Velocity{}
+                , Acceleration{}
                 ,new ColliderCircle(Vector2(x4, y4), radius)
                 ,PhysicsMaterial{0.0f, 0.0f}
                 ,PhysicsDesc{}
