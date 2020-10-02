@@ -407,7 +407,7 @@ void GameStateConstraints::Debug_ShowJointsUI() {
     std::string joints_header = std::string{"Joints - "} + std::to_string(j_size);
     if(ImGui::CollapsingHeader(joints_header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         for(std::size_t i = 0; i < j_size; ++i) {
-            const auto& joint = *joints[i].get();
+            auto& joint = *joints[i].get();
             if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Joint %d", i)) {
                 const auto* const bodyA = joint.GetBodyA();
                 const auto* const bodyB = joint.GetBodyB();
@@ -417,7 +417,10 @@ void GameStateConstraints::Debug_ShowJointsUI() {
                     std::string joints_body_header{};
                     if(j == 0) joints_body_header = "Body A";
                     if(j == 1) joints_body_header = "Body B";
-                    if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(j)), joints_body_header.c_str())) {
+                    if(ImGui::TreeNode(static_cast<void*>(&joint), joints_body_header.c_str())) {
+                        if(ImGui::Button("Detach")) {
+                            joint.Detach(j == 0 ? bodyA : bodyB);
+                        }
                         Debug_ShowBodyParametersUI(j == 0 ? bodyA : bodyB);
                         ImGui::TreePop();
                     }
