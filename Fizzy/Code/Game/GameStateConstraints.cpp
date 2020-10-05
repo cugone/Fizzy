@@ -10,6 +10,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -301,7 +302,9 @@ void GameStateConstraints::Debug_ShowBodiesUI() {
     if(ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         for(std::size_t i = 0; i < b_size; ++i) {
             const auto* body = &_bodies[i];
-            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Body %d", i)) {
+            std::string bodies_tree_name{"Body "};
+            bodies_tree_name += std::to_string(i);
+            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::uintptr_t>(std::hash<std::string>{}(bodies_tree_name))), bodies_tree_name.c_str())) {
                 Debug_ShowBodyParametersUI(body);
                 ImGui::TreePop();
             }
@@ -310,22 +313,23 @@ void GameStateConstraints::Debug_ShowBodiesUI() {
 }
 
 void GameStateConstraints::Debug_ShowJointsUI() {
-    _activeJoint = nullptr;
     const auto& joints = g_thePhysicsSystem->Debug_GetJoints();
     const auto j_size = joints.size();
     std::string joints_header = std::string{"Joints - "} + std::to_string(j_size);
     if(ImGui::CollapsingHeader(joints_header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         for(std::size_t i = 0; i < j_size; ++i) {
             auto& joint = *joints[i].get();
-            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::intptr_t>(i)), "Joint %d", i)) {
+            std::string joints_tree_name{"Joint "};
+            joints_tree_name += std::to_string(i);
+            if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::uintptr_t>(std::hash<std::string>{}(joints_tree_name))), joints_tree_name.c_str())) {
                 const auto* const bodyA = joint.GetBodyA();
                 const auto* const bodyB = joint.GetBodyB();
                 const auto anchorA = joint.GetAnchorA();
                 const auto anchorB = joint.GetAnchorB();
                 for(std::size_t j = 0; j < 2; ++j) {
-                    std::string joints_body_header{};
-                    if(j == 0) joints_body_header = "Body A";
-                    if(j == 1) joints_body_header = "Body B";
+                    std::string joints_body_header{"Body "};
+                    joints_body_header += static_cast<char>('A' + j);
+                    if(ImGui::TreeNode(reinterpret_cast<void*>(static_cast<std::uintptr_t>(std::hash<std::string>{}(joints_body_header))), joints_body_header.c_str())) {
                         _activeJoint = &joint;
                         if(ImGui::Button("Detach")) {
                             joint.Detach(j == 0 ? bodyA : bodyB);
