@@ -126,6 +126,7 @@ void GameStateConstraints::OnEnter() noexcept {
         cable.length = 55.0f;
         _joints.push_back(g_thePhysicsSystem->CreateJoint(cable));
     }
+    _activeJoint = _joints[0];
 
     std::vector<RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
@@ -325,7 +326,7 @@ void GameStateConstraints::Debug_ShowJointsUI() {
                     std::string joints_body_header{};
                     if(j == 0) joints_body_header = "Body A";
                     if(j == 1) joints_body_header = "Body B";
-                    if(ImGui::TreeNode(static_cast<void*>(&joint), joints_body_header.c_str())) {
+                        _activeJoint = &joint;
                         if(ImGui::Button("Detach")) {
                             joint.Detach(j == 0 ? bodyA : bodyB);
                         }
