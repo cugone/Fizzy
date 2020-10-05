@@ -252,7 +252,7 @@ void GameStateConstraints::Debug_ApplyImpulseAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
-    _activeBody->ApplyImpulse(direction * 10000.0f);
+    _activeBody->ApplyImpulse(direction * 1000.0f);
 }
 
 void GameStateConstraints::ShowDebugWindow() {
