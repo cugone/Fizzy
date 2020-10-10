@@ -1,7 +1,12 @@
 # Fizzy
 Demos of the Abrams2019 Physics System
 
-## Installation
-1. Clone https://github.com/cugone/Abrams2019
-2. Clone this repo to the same parent/top-level folder.
-3. Compile and Run this repo's VS2019 solution.
+## Building from source
+
+Fizzy is a project built using the [Abrams2019](https://github.com/cugone/Abrams2019.git) game engine. In order to build an executable from source you must clone Abrams2019 into a folder at the same level:
+
+```
+E:/Git/Abrams2019/...
+E:/Git/Fizzy/...
+```
+
