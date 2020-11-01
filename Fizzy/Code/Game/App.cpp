@@ -161,11 +161,14 @@ bool App::ProcessSystemMessage(const EngineMessage& msg) noexcept {
     case WindowsSystemMessage::Window_Size:
     {
         LPARAM lp = msg.lparam;
-        const auto w = LOWORD(lp);
-        const auto h = HIWORD(lp);
-        currentGraphicsOptions.WindowWidth = static_cast<float>(w);
-        currentGraphicsOptions.WindowHeight = static_cast<float>(h);
-        currentGraphicsOptions.WindowAspectRatio = currentGraphicsOptions.WindowWidth / currentGraphicsOptions.WindowHeight;
+        if(auto type = EngineSubsystem::GetResizeTypeFromWmSize(msg); type != WindowResizeType::Minimized) {
+            const auto w = LOWORD(lp);
+            const auto h = HIWORD(lp);
+
+            currentGraphicsOptions.WindowWidth = static_cast<float>(w);
+            currentGraphicsOptions.WindowHeight = static_cast<float>(h);
+            currentGraphicsOptions.WindowAspectRatio = currentGraphicsOptions.WindowWidth / currentGraphicsOptions.WindowHeight;
+        }
         return true;
     }
     case WindowsSystemMessage::Window_ActivateApp:
