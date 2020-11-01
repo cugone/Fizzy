@@ -34,9 +34,9 @@ void GameStateConstraints::OnEnter() noexcept {
     float y4 = y3;
     float x5 = x4 + 55.0f;
     float y5 = y4;
-    float x6 = x5 + 55.0f;
-    float y6 = y5;
-    float radius = 0.25f;
+    float x6 = x5 + 25.0f;
+    float y6 = y5 - 110.0f;
+    float radius = 25.0f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                      Position{x1, y1}
                     , Velocity{}
