@@ -29,7 +29,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float y3 = y1;
     float x4 = x3 + 55.0f;
     float y4 = y1;
-    float radius = 0.25f;
+    float radius = 25.0f;
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
                     Position{x2, y2}
                     ,Velocity{}
