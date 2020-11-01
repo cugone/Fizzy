@@ -264,8 +264,8 @@ void GameStateConstraints::ShowDebugWindow() {
         Debug_SelectedBodiesComboBoxUI();
         Debug_ShowBodiesUI();
         Debug_ShowJointsUI();
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 void GameStateConstraints::Debug_SelectedBodiesComboBoxUI() {

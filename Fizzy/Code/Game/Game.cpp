@@ -69,8 +69,9 @@ void Game::ShowDemoSelectionWindow() noexcept {
         if(ImGui::Button("Restart Demo")) {
             _state.RestartState();
         }
-        ImGui::End();
     }
+    ImGui::End();
+}
 }
 
 void Game::Render() const {

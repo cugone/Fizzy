@@ -226,8 +226,8 @@ void GameStateGravityDrag::ShowDebugWindow() {
         ImGui::Checkbox("Show Collision", &_show_collision);
         Debug_SelectedBodiesComboBoxUI();
         Debug_ShowBodiesUI();
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 void GameStateGravityDrag::Debug_SelectedBodiesComboBoxUI() {
