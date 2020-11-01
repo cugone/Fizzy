@@ -5,6 +5,7 @@
 #include "Game/IState.hpp"
 #include "Game/GameStateGravityDrag.hpp"
 #include "Game/GameStateConstraints.hpp"
+#include "Game/GameStateSleepManagement.hpp"
 
 #include <cstdint>
 #include <memory>

@@ -42,7 +42,7 @@ void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
 
 void Game::ShowDemoSelectionWindow() noexcept {
     if(ImGui::Begin("Demo", &_show_debug_window, ImGuiWindowFlags_AlwaysAutoResize)) {
-        std::array items{"GravityDrag", "Constraints"};
+        std::array items{"GravityDrag", "Constraints", "Sleep Management"};
         const char* current_item = items[_demo_index];
         if(ImGui::BeginCombo("Demo", current_item)) {
             for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
@@ -61,6 +61,9 @@ void Game::ShowDemoSelectionWindow() noexcept {
                 case 1:
                     _state.ChangeState(GameStateConstraints::ID);
                     break;
+                case 2:
+                    _state.ChangeState(GameStateSleepManagement::ID);
+                    break;
                 default: ERROR_AND_DIE("Game State values have changed. Refactor Demo GUI code.");
                 }
             }
@@ -71,7 +74,6 @@ void Game::ShowDemoSelectionWindow() noexcept {
         }
     }
     ImGui::End();
-}
 }
 
 void Game::Render() const {

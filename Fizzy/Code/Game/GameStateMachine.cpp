@@ -40,6 +40,8 @@ std::unique_ptr<IState> GameStateMachine::CreateStateFromId(const GUID& id) noex
         return CreateStateFromId(_currentStateId);
     } else if(IsEqualGUID(id, GameStateConstraints::ID)) {
         return std::make_unique<GameStateConstraints>();
+    } else if(IsEqualGUID(id, GameStateSleepManagement::ID)) {
+        return std::make_unique<GameStateSleepManagement>();
     }
     return {};
 }
