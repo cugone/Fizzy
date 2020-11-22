@@ -46,7 +46,7 @@ App::App(const std::string& cmdString)
     , _theJobSystem{std::make_unique<JobSystem>(-1, static_cast<std::size_t>(JobType::Max), new std::condition_variable)}
     , _theFileLogger{std::make_unique<FileLogger>(*_theJobSystem.get(), "game")}
     , _theConfig{std::make_unique<Config>(KeyValueParser{cmdString + "\n" + FileUtils::ReadStringBufferFromFile(g_options_filepath).value_or(g_options_str)})}
-    , _theRenderer{std::make_unique<Renderer>(*_theFileLogger.get(), *_theConfig.get()) }
+    , _theRenderer{std::make_unique<Renderer>(*_theJobSystem.get(), *_theFileLogger.get(), *_theConfig.get()) }
     , _thePhysicsSystem{std::make_unique<PhysicsSystem>(*_theRenderer.get()) }
     , _theUI{std::make_unique<UISystem>(*_theFileLogger.get(), *_theRenderer.get())}
     , _theConsole{ std::make_unique<Console>(*_theFileLogger.get(), *_theRenderer.get()) }
