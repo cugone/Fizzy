@@ -136,8 +136,8 @@ void GameStateGravityDrag::Render() const noexcept {
     _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
     g_theRenderer->SetCamera(_ui_camera);
 
-    g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
+    g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
 
     if(!_debug_click_adds_bodies) {
         g_theRenderer->DrawFilledCircle2D(_debug_point_on_body, 5.0f);
