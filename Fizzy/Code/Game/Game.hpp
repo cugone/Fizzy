@@ -32,11 +32,6 @@ private:
     GameStateMachine _state{};
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_bodies{};
-    mutable Camera2D _ui_camera{};
-    float _cam_speed = 100.0f;
-    float _max_shake_angle = 0.0f;
-    float _max_shake_x = 0.0f;
-    float _max_shake_y = 0.0f;
     static inline std::size_t _demo_index{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
