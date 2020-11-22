@@ -34,7 +34,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                     Position{x2, y2}
                     ,Velocity{}
                     ,Acceleration{}
-                    ,new ColliderCircle(Vector2(x2, y2), radius)
+        , new ColliderCircle(Position{x2, y2}, radius)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{0.0f}
                     )));
