@@ -163,6 +163,20 @@
       <Project>{acbda225-83de-4fba-a746-0135429fb391}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Run_x64\Data\Materials\Fullscreen.material" />
+    <None Include="..\..\Run_x64\Data\ShaderPrograms\Fullscreen_PS.cso" />
+    <None Include="..\..\Run_x64\Data\ShaderPrograms\Fullscreen_VS.cso" />
+    <None Include="..\..\Run_x64\Data\Shaders\Fullscreen.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Run_x64\Data\ShaderPrograms\Fullscreen.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugProfile|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FinalBuild|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
