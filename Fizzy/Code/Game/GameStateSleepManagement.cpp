@@ -16,7 +16,10 @@ void GameStateSleepManagement::BeginFrame() noexcept {
 }
 
 void GameStateSleepManagement::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
-    
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
+        g_theApp->SetIsQuitting(true);
+        return;
+    }
 }
 
 void GameStateSleepManagement::Render() const noexcept {
