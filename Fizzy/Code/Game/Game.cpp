@@ -32,9 +32,9 @@ void Game::BeginFrame() {
     _state.BeginFrame();
 }
 
-void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
+void Game::Update(a2de::TimeUtils::FPSeconds deltaSeconds) {
     _state.Update(deltaSeconds);
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::R)) {
+    if(g_theInputSystem->WasKeyJustPressed(a2de::KeyCode::R)) {
         _state.RestartState();
     }
     ShowDemoSelectionWindow();

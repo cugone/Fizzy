@@ -62,7 +62,7 @@ void GameStateMachine::BeginFrame() noexcept {
     _state->BeginFrame();
 }
 
-void GameStateMachine::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
+void GameStateMachine::Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept {
     _state->Update(deltaSeconds);
 }
 

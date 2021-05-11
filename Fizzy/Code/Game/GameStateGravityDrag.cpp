@@ -17,10 +17,10 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float screenX = width * 0.50f;
     float screenY = height * 0.50f;
     const auto world_dims = g_theRenderer->GetOutput()->GetDimensions();
-    const auto mins = Vector2(-world_dims) * 0.5f;
-    const auto maxs = Vector2(world_dims) * 0.5f;
-    auto physicsSystemDesc = PhysicsSystemDesc{};
-    physicsSystemDesc.world_bounds = AABB2{mins, maxs};
+    const auto mins = a2de::Vector2(-world_dims) * 0.5f;
+    const auto maxs = a2de::Vector2(world_dims) * 0.5f;
+    auto physicsSystemDesc = a2de::PhysicsSystemDesc{};
+    physicsSystemDesc.world_bounds = a2de::AABB2{mins, maxs};
     float x1 = screenX;
     float y1 = screenY;
     float x2 = x1 - 55.0f;
@@ -32,57 +32,57 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float x5 = x4 + 55.0f;
     float y5 = y1;
     float radius = 25.0f;
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Position{x2, y2}
-                    ,Velocity{}
-                    ,Acceleration{}
-        , new ColliderCircle(Position{x2, y2}, radius)
-                    ,PhysicsMaterial{0.0f, 0.0f}
-                    ,PhysicsDesc{0.0f}
+    _bodies.push_back(a2de::RigidBody(g_thePhysicsSystem, a2de::RigidBodyDesc(
+        a2de::Position{x2, y2}
+                    , a2de::Velocity{}
+                    , a2de::Acceleration{}
+        , new a2de::ColliderCircle(a2de::Position{x2, y2}, radius)
+                    , a2de::PhysicsMaterial{0.0f, 0.0f}
+                    , a2de::PhysicsDesc{0.0f}
                     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                    Position{x1, y1}
-                    , Velocity{}
-                    , Acceleration{}
-                    , new ColliderCircle(Vector2(x1, y1), radius)
-                    ,PhysicsMaterial{0.0f, 0.0f, 0.0f}
-                    ,PhysicsDesc{}
+    _bodies.push_back(a2de::RigidBody(g_thePhysicsSystem, a2de::RigidBodyDesc(
+        a2de::Position{x1, y1}
+                    , a2de::Velocity{}
+                    , a2de::Acceleration{}
+                    , new a2de::ColliderCircle(a2de::Vector2(x1, y1), radius)
+                    , a2de::PhysicsMaterial{0.0f, 0.0f, 0.0f}
+                    , a2de::PhysicsDesc{}
                     )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                Position{x3, y3}
-                , Velocity{}
-                , Acceleration{}
-                , new ColliderCircle(Vector2(x3, y3), radius)
-                ,PhysicsMaterial{0.0f, 0.0f}
-                ,PhysicsDesc{}
+    _bodies.push_back(a2de::RigidBody(g_thePhysicsSystem, a2de::RigidBodyDesc(
+        a2de::Position{x3, y3}
+                , a2de::Velocity{}
+                , a2de::Acceleration{}
+                , new a2de::ColliderCircle(a2de::Vector2(x3, y3), radius)
+                , a2de::PhysicsMaterial{0.0f, 0.0f}
+                , a2de::PhysicsDesc{}
                 )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-                Position{x4, y4}
-                , Velocity{}
-                , Acceleration{}
-                ,new ColliderCircle(Vector2(x4, y4), radius)
-                ,PhysicsMaterial{0.0f, 0.0f}
-                ,PhysicsDesc{}
+    _bodies.push_back(a2de::RigidBody(g_thePhysicsSystem, a2de::RigidBodyDesc(
+        a2de::Position{x4, y4}
+                , a2de::Velocity{}
+                , a2de::Acceleration{}
+                ,new a2de::ColliderCircle(a2de::Vector2(x4, y4), radius)
+                , a2de::PhysicsMaterial{0.0f, 0.0f}
+                , a2de::PhysicsDesc{}
                 )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
-        Position{x5, y5}
-        , Velocity{}
-        , Acceleration{}
-        , new ColliderPolygon(3, Vector2(x5, y5), Vector2{radius, radius} * 2.0f, 0.0f)
-        , PhysicsMaterial{0.0f, 0.0f}
-        , PhysicsDesc{}
+    _bodies.push_back(a2de::RigidBody(g_thePhysicsSystem, a2de::RigidBodyDesc(
+        a2de::Position{x5, y5}
+        , a2de::Velocity{}
+        , a2de::Acceleration{}
+        , new a2de::ColliderPolygon(3, a2de::Vector2(x5, y5), a2de::Vector2{radius, radius} * 2.0f, 0.0f)
+        , a2de::PhysicsMaterial{0.0f, 0.0f}
+        , a2de::PhysicsDesc{}
     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    std::vector<RigidBody*> body_ptrs(_bodies.size());
+    std::vector<a2de::RigidBody*> body_ptrs(_bodies.size());
     for(std::size_t i = 0u; i < _bodies.size(); ++i) {
         body_ptrs[i] = &_bodies[i];
     }
@@ -108,8 +108,8 @@ void GameStateGravityDrag::BeginFrame() noexcept {
     /* DO NOTHING */
 }
 
-void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
+void GameStateGravityDrag::Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept {
+    if(g_theInputSystem->WasKeyJustPressed(a2de::KeyCode::Esc)) {
         g_theApp->SetIsQuitting(true);
         return;
     }
@@ -120,10 +120,10 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
         ShowDebugWindow();
     }
 
-    Camera2D& base_camera = _ui_camera;
+    a2de::Camera2D& base_camera = _ui_camera;
     base_camera.Update(deltaSeconds);
 
-    _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_activeBody->GetCollider());
+    _debug_point_on_body = a2de::MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_activeBody->GetCollider());
     HandleInput();
 }
 
@@ -132,20 +132,20 @@ void GameStateGravityDrag::Render() const noexcept {
     g_theRenderer->SetRenderTargetsToBackBuffer();
     g_theRenderer->ClearDepthStencilBuffer();
 
-    g_theRenderer->ClearColor(Rgba::Black);
+    g_theRenderer->ClearColor(a2de::Rgba::Black);
 
     g_theRenderer->SetViewportAsPercent();
 
     //2D View / HUD
     const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
     const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
-    const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
+    const auto ui_view_extents = a2de::Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
-    auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
-    auto ui_rightTop = Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
-    auto ui_nearFar = Vector2{0.0f, 1.0f};
+    auto ui_leftBottom = a2de::Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
+    auto ui_rightTop = a2de::Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
+    auto ui_nearFar = a2de::Vector2{0.0f, 1.0f};
     _ui_camera.position = ui_view_half_extents;
-    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
+    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, a2de::MathUtils::M_16_BY_9_RATIO);
     g_theRenderer->SetCamera(_ui_camera);
 
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
@@ -162,17 +162,17 @@ void GameStateGravityDrag::EndFrame() noexcept {
         return;
     }
     for(const auto& pos : _new_body_positions) {
-        _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        _bodies.push_back(a2de::RigidBody(g_thePhysicsSystem, a2de::RigidBodyDesc(
             pos
-            , Vector2::ZERO
-            , Vector2::ZERO
-            , new ColliderCircle(pos, 25.0f)
-            , PhysicsMaterial{}
-            , PhysicsDesc{}
+            , a2de::Vector2::ZERO
+            , a2de::Vector2::ZERO
+            , new a2de::ColliderCircle(pos, 25.0f)
+            , a2de::PhysicsMaterial{}
+            , a2de::PhysicsDesc{}
         )));
     }
     const auto new_size = _bodies.size();
-    auto new_body_ptrs = std::vector<RigidBody*>(new_size);
+    auto new_body_ptrs = std::vector<a2de::RigidBody*>(new_size);
     for(auto i = std::size_t{0u}; i < new_size; ++i) {
         new_body_ptrs[i] = &_bodies[i];
     }
@@ -188,10 +188,10 @@ void GameStateGravityDrag::HandleInput() noexcept {
 }
 
 void GameStateGravityDrag::HandleKeyboardInput() noexcept {
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::F1)) {
+    if(g_theInputSystem->WasKeyJustPressed(a2de::KeyCode::F1)) {
         ToggleShowDebugWindow();
     }
-    if(g_theInputSystem->WasKeyJustPressed(KeyCode::F4)) {
+    if(g_theInputSystem->WasKeyJustPressed(a2de::KeyCode::F4)) {
         g_theUISystem->ToggleImguiDemoWindow();
     }
 }
@@ -209,11 +209,11 @@ void GameStateGravityDrag::ToggleShowDebugWindow() noexcept {
 
 void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
     if(_debug_click_adds_bodies) {
-        if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+        if(g_theInputSystem->WasKeyJustPressed(a2de::KeyCode::LButton)) {
             Debug_AddBodyAtMouseCoords();
         }
     } else {
-        if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
+        if(g_theInputSystem->IsKeyDown(a2de::KeyCode::LButton)) {
             Debug_ApplyImpulseAtMouseCoords();
         }
     }
@@ -226,7 +226,7 @@ void GameStateGravityDrag::Debug_AddBodyAtMouseCoords() noexcept {
 
 void GameStateGravityDrag::Debug_ApplyImpulseAtMouseCoords() noexcept {
     const auto p = g_theInputSystem->GetMouseCoords();
-    const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
+    const auto point_on_body = a2de::MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
     _activeBody->ApplyImpulse(direction * 150.0f);
 }
@@ -280,7 +280,7 @@ void GameStateGravityDrag::Debug_ShowBodiesUI() {
     }
 }
 
-void GameStateGravityDrag::Debug_ShowBodyParametersUI(const RigidBody* const body) {
+void GameStateGravityDrag::Debug_ShowBodyParametersUI(const a2de::RigidBody* const body) {
     const auto acc = body->GetAcceleration();
     const auto vel = body->GetVelocity();
     const auto pos = body->GetPosition();

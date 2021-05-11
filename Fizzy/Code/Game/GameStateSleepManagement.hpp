@@ -21,7 +21,7 @@ public:
     void OnEnter() noexcept override;
     void OnExit() noexcept override;
     void BeginFrame() noexcept override;
-    void Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept override;
+    void Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept override;
     void Render() const noexcept override;
     void EndFrame() noexcept override;
 protected:
@@ -29,6 +29,6 @@ private:
     void ShowDebugWindow();
     void ToggleShowDebugWindow() noexcept;
 
-    mutable Camera2D _ui_camera{};
+    mutable a2de::Camera2D _ui_camera{};
     bool _show_debug_window = true;
 };

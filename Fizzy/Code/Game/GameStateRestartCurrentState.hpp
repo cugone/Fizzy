@@ -21,7 +21,7 @@ public:
     void OnExit() noexcept override;
 
     void BeginFrame() noexcept override;
-    void Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept override;
+    void Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept override;
     void Render() const noexcept override;
     void EndFrame() noexcept override;
 
