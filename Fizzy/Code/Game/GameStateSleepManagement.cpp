@@ -15,8 +15,8 @@ void GameStateSleepManagement::BeginFrame() noexcept {
     /* DO NOTHING */
 }
 
-void GameStateSleepManagement::Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept {
-    if(g_theInputSystem->WasKeyJustPressed(a2de::KeyCode::Esc)) {
+void GameStateSleepManagement::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
         g_theApp->SetIsQuitting(true);
         return;
     }
@@ -27,20 +27,20 @@ void GameStateSleepManagement::Render() const noexcept {
     g_theRenderer->SetRenderTargetsToBackBuffer();
     g_theRenderer->ClearDepthStencilBuffer();
 
-    g_theRenderer->ClearColor(a2de::Rgba::Black);
+    g_theRenderer->ClearColor(Rgba::Black);
 
     g_theRenderer->SetViewportAsPercent();
 
     //2D View / HUD
     const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
     const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
-    const auto ui_view_extents = a2de::Vector2{ui_view_width, ui_view_height};
+    const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
-    auto ui_leftBottom = a2de::Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
-    auto ui_rightTop = a2de::Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
-    auto ui_nearFar = a2de::Vector2{0.0f, 1.0f};
+    auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
+    auto ui_rightTop = Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
+    auto ui_nearFar = Vector2{0.0f, 1.0f};
     _ui_camera.position = ui_view_half_extents;
-    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, a2de::MathUtils::M_16_BY_9_RATIO);
+    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
     g_theRenderer->SetCamera(_ui_camera);
 
 }

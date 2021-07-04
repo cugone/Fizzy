@@ -1,11 +1,24 @@
 #include "Game/App.hpp"
 
+#include "Engine/Audio/AudioSystem.hpp"
+
 #include "Engine/Core/Config.hpp"
+#include "Engine/Core/Console.hpp"
 #include "Engine/Core/FileLogger.hpp"
-#include "Engine/Core/FileUtils.hpp"
 #include "Engine/Core/JobSystem.hpp"
 #include "Engine/Core/KeyValueParser.hpp"
 #include "Engine/Core/StringUtils.hpp"
+
+#include "Engine/Core/EngineSubsystem.hpp"
+#include "Engine/Services/ServiceLocator.hpp"
+#include "Engine/Services/IAudioService.hpp"
+#include "Engine/Services/IConfigService.hpp"
+#include "Engine/Services/IFileLoggerService.hpp"
+#include "Engine/Services/IInputService.hpp"
+#include "Engine/Services/IJobSystemService.hpp"
+#include "Engine/Services/IRendererService.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
 
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Window.hpp"
@@ -28,7 +41,7 @@ EngineMessage GetEngineMessageFromWindowsParams(HWND hwnd, UINT uMsg, WPARAM wPa
     EngineMessage msg{};
     msg.hWnd = hwnd;
     msg.nativeMessage = uMsg;
-    msg.wmMessageCode = a2de::EngineSubsystem::GetWindowsSystemMessageFromUintMessage(uMsg);
+    msg.wmMessageCode = EngineSubsystem::GetWindowsSystemMessageFromUintMessage(uMsg);
     msg.wparam = wParam;
     msg.lparam = lParam;
     return msg;
@@ -36,23 +49,14 @@ EngineMessage GetEngineMessageFromWindowsParams(HWND hwnd, UINT uMsg, WPARAM wPa
 
 bool CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return (g_theSubsystemHead &&
-            g_theSubsystemHead->a2de::EngineSubsystem::ProcessSystemMessage(
+            g_theSubsystemHead->EngineSubsystem::ProcessSystemMessage(
                 GetEngineMessageFromWindowsParams(hwnd, uMsg, wParam, lParam)));
 }
 
 
 App::App(const std::string& cmdString)
     : EngineSubsystem()
-    , _theJobSystem{std::make_unique<a2de::JobSystem>(-1, static_cast<std::size_t>(a2de::JobType::Max), new std::condition_variable)}
-    , _theFileLogger{std::make_unique<a2de::FileLogger>(*_theJobSystem.get(), "game")}
-    , _theConfig{std::make_unique<a2de::Config>(a2de::KeyValueParser{cmdString + "\n" + a2de::FileUtils::ReadStringBufferFromFile(g_options_filepath).value_or(g_options_str)})}
-    , _theRenderer{std::make_unique<a2de::Renderer>(*_theJobSystem.get(), *_theFileLogger.get(), *_theConfig.get()) }
-    , _thePhysicsSystem{std::make_unique<a2de::PhysicsSystem>(*_theRenderer.get()) }
-    , _theInputSystem{ std::make_unique<a2de::InputSystem>(*_theFileLogger.get(), *_theRenderer.get()) }
-    , _theUI{std::make_unique<a2de::UISystem>(*_theFileLogger.get(), *_theRenderer.get(), *_theInputSystem.get())}
-    , _theConsole{ std::make_unique<a2de::Console>(*_theFileLogger.get(), *_theRenderer.get()) }
-    , _theAudioSystem{ std::make_unique<a2de::AudioSystem>(*_theFileLogger.get()) }
-    , _theGame{std::make_unique<Game>()}
+    , _theConfig{std::make_unique<Config>(KeyValueParser{cmdString + "\n" + FileUtils::ReadStringBufferFromFile(g_options_filepath).value_or(g_options_str)})}
 {
     SetupEngineSystemPointers();
     SetupEngineSystemChainOfResponsibility();
@@ -64,19 +68,40 @@ App::~App() {
 }
 
 void App::SetupEngineSystemPointers() {
+    ServiceLocator::provide(*static_cast<IConfigService*>(_theConfig.get()));
+
+    _theJobSystem = std::make_unique<JobSystem>(-1, static_cast<std::size_t>(JobType::Max), new std::condition_variable);
+    ServiceLocator::provide(*static_cast<IJobSystemService*>(_theJobSystem.get()));
+
+    _theFileLogger = std::make_unique<FileLogger>("game");
+    ServiceLocator::provide(*static_cast<IFileLoggerService*>(_theFileLogger.get()));
+
+    _theRenderer = std::make_unique<Renderer>();
+    ServiceLocator::provide(*static_cast<IRendererService*>(_theRenderer.get()));
+
+    _theInputSystem = std::make_unique<InputSystem>();
+    ServiceLocator::provide(*static_cast<IInputService*>(_theInputSystem.get()));
+
+    _theAudioSystem = std::make_unique<AudioSystem>();
+    ServiceLocator::provide(*static_cast<IAudioService*>(_theAudioSystem.get()));
+
+    _theUI = std::make_unique<UISystem>();
+    _theConsole = std::make_unique<Console>();
+    _theGame = std::make_unique<Game>();
+    _thePhysicsSystem = std::make_unique<PhysicsSystem>();
+
     g_theJobSystem = _theJobSystem.get();
     g_theFileLogger = _theFileLogger.get();
     g_theConfig = _theConfig.get();
     g_theRenderer = _theRenderer.get();
-    g_thePhysicsSystem = _thePhysicsSystem.get();
     g_theUISystem = _theUI.get();
     g_theConsole = _theConsole.get();
     g_theInputSystem = _theInputSystem.get();
+    g_thePhysicsSystem = _thePhysicsSystem.get();
     g_theAudioSystem = _theAudioSystem.get();
     g_theGame = _theGame.get();
     g_theApp = this;
 }
-
 void App::SetupEngineSystemChainOfResponsibility() {
     g_theRenderer->SetNextHandler(g_theConsole);
     g_theConsole->SetNextHandler(g_theUISystem);
@@ -109,7 +134,7 @@ void App::BeginFrame() {
     g_theRenderer->BeginFrame();
 }
 
-void App::Update(a2de::TimeUtils::FPSeconds deltaSeconds) {
+void App::Update(TimeUtils::FPSeconds deltaSeconds) {
     g_theUISystem->Update(deltaSeconds);
     g_theInputSystem->Update(deltaSeconds);
     g_theConsole->Update(deltaSeconds);
@@ -143,25 +168,25 @@ bool App::ProcessSystemMessage(const EngineMessage& msg) noexcept {
 
     WPARAM wp = msg.wparam;
     switch(msg.wmMessageCode) {
-    case a2de::WindowsSystemMessage::Window_Close:
+    case WindowsSystemMessage::Window_Close:
     {
         SetIsQuitting(true);
         return true;
     }
-    case a2de::WindowsSystemMessage::Window_Quit:
+    case WindowsSystemMessage::Window_Quit:
     {
         SetIsQuitting(true);
         return true;
     }
-    case a2de::WindowsSystemMessage::Window_Destroy:
+    case WindowsSystemMessage::Window_Destroy:
     {
         ::PostQuitMessage(0);
         return true;
     }
-    case a2de::WindowsSystemMessage::Window_Size:
+    case WindowsSystemMessage::Window_Size:
     {
         LPARAM lp = msg.lparam;
-        if(auto type = EngineSubsystem::GetResizeTypeFromWmSize(msg); type != a2de::WindowResizeType::Minimized) {
+        if(auto type = EngineSubsystem::GetResizeTypeFromWmSize(msg); type != WindowResizeType::Minimized) {
             const auto w = LOWORD(lp);
             const auto h = HIWORD(lp);
 
@@ -171,7 +196,7 @@ bool App::ProcessSystemMessage(const EngineMessage& msg) noexcept {
         }
         return true;
     }
-    case a2de::WindowsSystemMessage::Window_ActivateApp:
+    case WindowsSystemMessage::Window_ActivateApp:
     {
         bool losing_focus = wp == FALSE;
         bool gaining_focus = wp == TRUE;
@@ -185,7 +210,7 @@ bool App::ProcessSystemMessage(const EngineMessage& msg) noexcept {
         }
         return true;
     }
-    case a2de::WindowsSystemMessage::Keyboard_Activate:
+    case WindowsSystemMessage::Keyboard_Activate:
     {
         auto active_type = LOWORD(wp);
         switch(active_type) {
@@ -216,12 +241,12 @@ void App::SetIsQuitting(bool value) {
 }
 
 void App::RunFrame() {
-    using namespace a2de::TimeUtils;
+    using namespace TimeUtils;
 
     BeginFrame();
 
-    static FPSeconds previousFrameTime = a2de::TimeUtils::GetCurrentTimeElapsed();
-    FPSeconds currentFrameTime = a2de::TimeUtils::GetCurrentTimeElapsed();
+    static FPSeconds previousFrameTime = TimeUtils::GetCurrentTimeElapsed();
+    FPSeconds currentFrameTime = TimeUtils::GetCurrentTimeElapsed();
     FPSeconds deltaSeconds = (currentFrameTime - previousFrameTime);
     previousFrameTime = currentFrameTime;
 
@@ -235,12 +260,12 @@ void App::RunFrame() {
 }
 
 void App::LogSystemDescription() const {
-    auto system = a2de::System::GetSystemDesc();
+    auto system = System::GetSystemDesc();
     std::ostringstream ss;
     ss << std::right << std::setfill('-') << std::setw(60) << '\n';
-    ss << a2de::StringUtils::to_string(system);
+    ss << StringUtils::to_string(system);
     ss << std::right << std::setfill('-') << std::setw(60) << '\n';
-    a2de::DebuggerPrintf(ss.str().c_str());
+    DebuggerPrintf(ss.str().c_str());
 }
 
 bool App::HasFocus() const {

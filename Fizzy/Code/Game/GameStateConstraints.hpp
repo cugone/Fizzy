@@ -28,7 +28,7 @@ public:
     void OnExit() noexcept override;
 
     void BeginFrame() noexcept override;
-    void Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept override;
+    void Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept override;
     void Render() const noexcept override;
     void EndFrame() noexcept override;
 
@@ -49,15 +49,15 @@ private:
     void Debug_SelectedBodiesComboBoxUI();
     void Debug_ShowJointsUI();
     void Debug_ShowBodiesUI();
-    void Debug_ShowBodyParametersUI(const a2de::RigidBody* const body);
+    void Debug_ShowBodyParametersUI(const RigidBody* const body);
 
-    std::vector<a2de::RigidBody> _bodies{};
-    std::vector<a2de::Joint*> _joints{};
-    std::vector<a2de::Vector2> _new_body_positions{};
-    a2de::Vector2 _debug_point_on_body{};
-    mutable a2de::Camera2D _ui_camera{};
-    a2de::RigidBody* _activeBody{};
-    a2de::Joint* _activeJoint{};
+    std::vector<RigidBody> _bodies{};
+    std::vector<Joint*> _joints{};
+    std::vector<Vector2> _new_body_positions{};
+    Vector2 _debug_point_on_body{};
+    mutable Camera2D _ui_camera{};
+    RigidBody* _activeBody{};
+    Joint* _activeJoint{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
     bool _debug_click_adds_bodies = false;

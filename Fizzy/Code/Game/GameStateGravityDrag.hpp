@@ -28,7 +28,7 @@ public:
     void OnExit() noexcept override;
 
     void BeginFrame() noexcept override;
-    void Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept override;
+    void Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept override;
     void Render() const noexcept override;
     void EndFrame() noexcept override;
 
@@ -47,15 +47,15 @@ private:
     void Debug_ApplyImpulseAtMouseCoords() noexcept;
     
     void Debug_ShowBodiesUI();
-    void Debug_ShowBodyParametersUI(const a2de::RigidBody* const body);
+    void Debug_ShowBodyParametersUI(const RigidBody* const body);
     void Debug_SelectedBodiesComboBoxUI();
 
-    std::vector<a2de::RigidBody> _bodies{};
-    std::vector<a2de::Vector2> _new_body_positions{};
-    a2de::Vector2 _debug_point_on_body{};
+    std::vector<RigidBody> _bodies{};
+    std::vector<Vector2> _new_body_positions{};
+    Vector2 _debug_point_on_body{};
     static inline std::size_t _selected_body{0u};
-    mutable a2de::Camera2D _ui_camera{};
-    a2de::RigidBody* _activeBody{};
+    mutable Camera2D _ui_camera{};
+    RigidBody* _activeBody{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
     bool _debug_click_adds_bodies = false;

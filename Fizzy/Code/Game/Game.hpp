@@ -21,7 +21,7 @@ public:
 
     void Initialize();
     void BeginFrame();
-    void Update(a2de::TimeUtils::FPSeconds deltaSeconds);
+    void Update(TimeUtils::FPSeconds deltaSeconds);
     void Render() const;
     void EndFrame();
 
@@ -30,8 +30,8 @@ private:
     void ShowDemoSelectionWindow() noexcept;
 
     GameStateMachine _state{};
-    std::vector<a2de::RigidBody> _bodies{};
-    std::vector<a2de::Vector2> _new_bodies{};
+    std::vector<RigidBody> _bodies{};
+    std::vector<Vector2> _new_bodies{};
     static inline std::size_t _demo_index{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;

@@ -26,7 +26,7 @@ public:
     void RestartState() noexcept;
 
     void BeginFrame() noexcept;
-    void Update([[maybe_unused]] a2de::TimeUtils::FPSeconds deltaSeconds) noexcept;
+    void Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept;
     void Render() const noexcept;
     void EndFrame() noexcept;
 
