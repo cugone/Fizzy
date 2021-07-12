@@ -11,7 +11,7 @@
 void GameStateGravityDrag::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
-    const std::size_t maxBodies = 2;
+    const std::size_t maxBodies = 5;
     _bodies.clear();
     _bodies.reserve(maxBodies);
     float screenX = width * 0.50f;
@@ -21,6 +21,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
     const auto maxs = Vector2(world_dims) * 0.5f;
     auto physicsSystemDesc = PhysicsSystemDesc{};
     physicsSystemDesc.world_bounds = AABB2{mins, maxs};
+    float radius = 25.0f;
     float x1 = screenX;
     float y1 = screenY;
     float x2 = x1 - 55.0f;
@@ -30,8 +31,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float x4 = x3 + 55.0f;
     float y4 = y1;
     float x5 = x4 + 55.0f;
-    float y5 = y1;
-    float radius = 25.0f;
+    float y5 = maxs.y + (radius * 4.0f);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
         Position{x2, y2}
                     , Velocity{}
@@ -47,10 +47,10 @@ void GameStateGravityDrag::OnEnter() noexcept {
                     , Velocity{}
                     , Acceleration{}
                     , new ColliderCircle(Vector2(x1, y1), radius)
-                    , PhysicsMaterial{0.0f, 0.0f, 0.0f}
-                    , PhysicsDesc{}
+                    ,PhysicsMaterial{0.0f, 0.0f}
+                    ,PhysicsDesc{}
                     )));
-    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
     _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
         Position{x3, y3}
@@ -76,9 +76,9 @@ void GameStateGravityDrag::OnEnter() noexcept {
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
-        , new ColliderPolygon(3, Vector2(x5, y5), Vector2{radius, radius} * 2.0f, 0.0f)
+        , new ColliderAABB(Vector2(x5, y5), Vector2{5.0f * radius, 2.5f * radius})
         , PhysicsMaterial{0.0f, 0.0f}
-        , PhysicsDesc{}
+        , PhysicsDesc{1.0f}
     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
@@ -125,6 +125,7 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
 
     _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_activeBody->GetCollider());
     HandleInput();
+
 }
 
 void GameStateGravityDrag::Render() const noexcept {
@@ -154,7 +155,6 @@ void GameStateGravityDrag::Render() const noexcept {
     if(!_debug_click_adds_bodies) {
         g_theRenderer->DrawFilledCircle2D(_debug_point_on_body, 5.0f);
     }
-
 }
 
 void GameStateGravityDrag::EndFrame() noexcept {
@@ -166,7 +166,7 @@ void GameStateGravityDrag::EndFrame() noexcept {
             pos
             , Vector2::ZERO
             , Vector2::ZERO
-            , new ColliderCircle(pos, 25.0f)
+            , new ColliderOBB(pos, Vector2{25.0f,25.0f})
             , PhysicsMaterial{}
             , PhysicsDesc{}
         )));

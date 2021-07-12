@@ -6,6 +6,7 @@
 #include "Engine/Math/Vector2.hpp"
 
 #include "Engine/Renderer/Camera2D.hpp"
+#include "Engine/Renderer/Mesh.hpp"
 
 #include "Game/IState.hpp"
 
