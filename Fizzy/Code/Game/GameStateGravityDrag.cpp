@@ -3,7 +3,12 @@
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
 
+#include "Engine/Physics/Particles/ParticleSystem.hpp"
+
 #include "Engine/Renderer/Window.hpp"
+
+#include "Engine/Services/ServiceLocator.hpp"
+#include "Engine/Services/IRendererService.hpp"
 
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
@@ -94,9 +99,15 @@ void GameStateGravityDrag::OnEnter() noexcept {
     }
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->Debug_ShowCollision(true);
+
+    _flamePS->RegisterEffectsFromFolder("Data/ParticleEffects");
+    _flame_effect = std::make_unique<ParticleEffect>("flame_emission");
+    _flame_effect->position = Vector3{Vector2{screenX, screenY}, 0.0f};
+    _flame_effect->SetPlay(true);
 }
 
 void GameStateGravityDrag::OnExit() noexcept {
+    _flame_effect->SetPlay(false);
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
     g_thePhysicsSystem->Debug_ShowCollision(false);
     g_thePhysicsSystem->Enable(false);
@@ -105,10 +116,13 @@ void GameStateGravityDrag::OnExit() noexcept {
 
 
 void GameStateGravityDrag::BeginFrame() noexcept {
-    /* DO NOTHING */
+    _flame_effect->BeginFrame();
 }
 
 void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
+    auto& renderer = ServiceLocator::get<IRendererService>();
+    renderer.UpdateGameTime(deltaSeconds);
+
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
         g_theApp->SetIsQuitting(true);
         return;
@@ -125,6 +139,7 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
 
     _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_activeBody->GetCollider());
     HandleInput();
+    _flame_effect->Update(renderer.GetGameTime().count(), deltaSeconds.count());
 }
 
 void GameStateGravityDrag::Render() const noexcept {
@@ -135,6 +150,8 @@ void GameStateGravityDrag::Render() const noexcept {
     g_theRenderer->ClearColor(Rgba::Black);
 
     g_theRenderer->SetViewportAsPercent();
+
+    _flame_effect->Render();
 
     //2D View / HUD
     const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
@@ -158,6 +175,7 @@ void GameStateGravityDrag::Render() const noexcept {
 }
 
 void GameStateGravityDrag::EndFrame() noexcept {
+    _flame_effect->EndFrame();
     if(_new_body_positions.empty()) {
         return;
     }

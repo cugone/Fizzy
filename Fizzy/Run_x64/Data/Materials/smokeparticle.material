@@ -1,0 +1,6 @@
+<material name="smokeparticle">
+    <shader src="Data/Shaders/smokeparticle.shader" />
+    <textures>
+        <diffuse src="Data/Images/particle.png" />
+    </textures>
+</material>

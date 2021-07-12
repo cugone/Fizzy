@@ -5,7 +5,10 @@
 
 #include "Engine/Math/Vector2.hpp"
 
+#include "Engine/Physics/Particles/ParticleEffect.hpp"
+
 #include "Engine/Renderer/Camera2D.hpp"
+#include "Engine/Physics/Particles/ParticleSystem.hpp"
 
 #include "Game/IState.hpp"
 
@@ -55,6 +58,8 @@ private:
     Vector2 _debug_point_on_body{};
     static inline std::size_t _selected_body{0u};
     mutable Camera2D _ui_camera{};
+    std::unique_ptr<ParticleEffect> _flame_effect{};
+    std::unique_ptr<ParticleSystem> _flamePS{};
     RigidBody* _activeBody{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
