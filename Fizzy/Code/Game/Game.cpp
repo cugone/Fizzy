@@ -2,9 +2,12 @@
 
 #include "Engine/Core/BuildConfig.hpp"
 #include "Engine/Core/DataUtils.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/FileUtils.hpp"
 #include "Engine/Core/KerningFont.hpp"
 #include "Engine/Core/Utilities.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
 
 #include "Engine/Math/Vector2.hpp"
 #include "Engine/Math/Vector4.hpp"
@@ -12,27 +15,29 @@
 #include "Engine/Physics/PhysicsUtils.hpp"
 
 #include "Engine/Renderer/AnimatedSprite.hpp"
+#include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Renderer/Window.hpp"
 
-#include "Game/GameCommon.hpp"
+#include "Engine/UI/UISystem.hpp"
+
 #include "Game/GameConfig.hpp"
 
 #include "Game/GameStateGravityDrag.hpp"
 
 #include <array>
 
-void Game::Initialize() {
+void Game::Initialize() noexcept {
     g_theRenderer->RegisterMaterialsFromFolder(std::string{ "Data/Materials" });
     _state.ChangeState(GameStateGravityDrag::ID);
 }
 
-void Game::BeginFrame() {
+void Game::BeginFrame() noexcept {
     _state.BeginFrame();
 }
 
-void Game::Update(TimeUtils::FPSeconds deltaSeconds) {
+void Game::Update(TimeUtils::FPSeconds deltaSeconds) noexcept {
     _state.Update(deltaSeconds);
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::R)) {
         _state.RestartState();
@@ -76,10 +81,10 @@ void Game::ShowDemoSelectionWindow() noexcept {
     ImGui::End();
 }
 
-void Game::Render() const {
+void Game::Render() const noexcept {
     _state.Render();
 }
 
-void Game::EndFrame() {
+void Game::EndFrame() noexcept {
     _state.EndFrame();
 }

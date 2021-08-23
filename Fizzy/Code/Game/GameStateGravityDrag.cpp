@@ -1,22 +1,34 @@
 #include "Game/GameStateGravityDrag.hpp"
 
+#include "Engine/Core/App.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
+
+#include "Engine/Physics/PhysicsSystem.hpp"
+#include "Engine/Physics/PhysicsTypes.hpp"
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
 
 #include "Engine/Physics/Particles/ParticleSystem.hpp"
 
+#include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Window.hpp"
 
 #include "Engine/Services/ServiceLocator.hpp"
 #include "Engine/Services/IRendererService.hpp"
 
+#include "Engine/Input/InputSystem.hpp"
+#include "Engine/UI/UISystem.hpp"
+
+#include "Game/Game.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
 void GameStateGravityDrag::OnEnter() noexcept {
     float width = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().x);
     float height = static_cast<float>(g_theRenderer->GetOutput()->GetDimensions().y);
-    const std::size_t maxBodies = 2;
+    const std::size_t maxBodies = 5;
     _bodies.clear();
     _bodies.reserve(maxBodies);
     float screenX = width * 0.50f;
@@ -26,6 +38,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
     const auto maxs = Vector2(world_dims) * 0.5f;
     auto physicsSystemDesc = PhysicsSystemDesc{};
     physicsSystemDesc.world_bounds = AABB2{mins, maxs};
+    float radius = 25.0f;
     float x1 = screenX;
     float y1 = screenY;
     float x2 = x1 - 55.0f;
@@ -35,9 +48,8 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float x4 = x3 + 55.0f;
     float y4 = y1;
     float x5 = x4 + 55.0f;
-    float y5 = y1;
-    float radius = 25.0f;
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    float y5 = maxs.y + (radius * 4.0f);
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x2, y2}
                     , Velocity{}
                     , Acceleration{}
@@ -47,17 +59,17 @@ void GameStateGravityDrag::OnEnter() noexcept {
                     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x1, y1}
                     , Velocity{}
                     , Acceleration{}
                     , new ColliderCircle(Vector2(x1, y1), radius)
-                    , PhysicsMaterial{0.0f, 0.0f, 0.0f}
-                    , PhysicsDesc{}
+                    ,PhysicsMaterial{0.0f, 0.0f}
+                    ,PhysicsDesc{}
                     )));
-    _bodies.back().EnableGravity(true);
+    _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x3, y3}
                 , Velocity{}
                 , Acceleration{}
@@ -67,7 +79,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                 )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x4, y4}
                 , Velocity{}
                 , Acceleration{}
@@ -77,13 +89,13 @@ void GameStateGravityDrag::OnEnter() noexcept {
                 )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
-        , new ColliderPolygon(3, Vector2(x5, y5), Vector2{radius, radius} * 2.0f, 0.0f)
+        , new ColliderAABB(Vector2(x5, y5), Vector2{5.0f * radius, 2.5f * radius})
         , PhysicsMaterial{0.0f, 0.0f}
-        , PhysicsDesc{}
+        , PhysicsDesc{1.0f}
     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
@@ -124,7 +136,7 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
     renderer.UpdateGameTime(deltaSeconds);
 
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
-        g_theApp->SetIsQuitting(true);
+        g_theApp<Game>->SetIsQuitting(true);
         return;
     }
     g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
@@ -140,30 +152,18 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
     _debug_point_on_body = MathUtils::CalcClosestPoint(g_theInputSystem->GetMouseCoords(), *_activeBody->GetCollider());
     HandleInput();
     _flame_effect->Update(renderer.GetGameTime().count(), deltaSeconds.count());
+
 }
 
 void GameStateGravityDrag::Render() const noexcept {
-    g_theRenderer->ResetModelViewProjection();
-    g_theRenderer->SetRenderTargetsToBackBuffer();
-    g_theRenderer->ClearDepthStencilBuffer();
-
-    g_theRenderer->ClearColor(Rgba::Black);
-
-    g_theRenderer->SetViewportAsPercent();
-
-    _flame_effect->Render();
+    g_theRenderer->BeginRenderToBackbuffer();
 
     //2D View / HUD
-    const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
+    const auto ui_view_height = static_cast<float>(g_theGame->GetSettings().GetWindowHeight());
     const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
     const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
-    auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
-    auto ui_rightTop = Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
-    auto ui_nearFar = Vector2{0.0f, 1.0f};
-    _ui_camera.position = ui_view_half_extents;
-    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
-    g_theRenderer->SetCamera(_ui_camera);
+    g_theRenderer->BeginHUDRender(_ui_camera, ui_view_half_extents, ui_view_height);
 
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
     g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
@@ -171,7 +171,6 @@ void GameStateGravityDrag::Render() const noexcept {
     if(!_debug_click_adds_bodies) {
         g_theRenderer->DrawFilledCircle2D(_debug_point_on_body, 5.0f);
     }
-
 }
 
 void GameStateGravityDrag::EndFrame() noexcept {
@@ -180,11 +179,11 @@ void GameStateGravityDrag::EndFrame() noexcept {
         return;
     }
     for(const auto& pos : _new_body_positions) {
-        _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        _bodies.push_back(RigidBody(RigidBodyDesc(
             pos
             , Vector2::ZERO
             , Vector2::ZERO
-            , new ColliderCircle(pos, 25.0f)
+            , new ColliderOBB(pos, Vector2{25.0f,25.0f})
             , PhysicsMaterial{}
             , PhysicsDesc{}
         )));
@@ -238,12 +237,12 @@ void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
 }
 
 void GameStateGravityDrag::Debug_AddBodyAtMouseCoords() noexcept {
-    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto& p = g_theInputSystem->GetMouseCoords();
     _new_body_positions.push_back(p);
 }
 
 void GameStateGravityDrag::Debug_ApplyImpulseAtMouseCoords() noexcept {
-    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto& p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
     _activeBody->ApplyImpulse(direction * 150.0f);
@@ -299,9 +298,9 @@ void GameStateGravityDrag::Debug_ShowBodiesUI() {
 }
 
 void GameStateGravityDrag::Debug_ShowBodyParametersUI(const RigidBody* const body) {
-    const auto acc = body->GetAcceleration();
-    const auto vel = body->GetVelocity();
-    const auto pos = body->GetPosition();
+    const auto& acc = body->GetAcceleration();
+    const auto& vel = body->GetVelocity();
+    const auto& pos = body->GetPosition();
     const auto aacc = body->GetAngularAccelerationDegrees();
     const auto avel = body->GetAngularVelocityDegrees();
     const auto apos = body->GetOrientationDegrees();

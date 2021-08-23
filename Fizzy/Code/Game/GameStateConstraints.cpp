@@ -1,12 +1,20 @@
 #include "Game/GameStateConstraints.hpp"
 
+#include "Engine/Core/App.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
+
+#include "Engine/Physics/PhysicsSystem.hpp"
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
 #include "Engine/Physics/RodJoint.hpp"
 #include "Engine/Physics/CableJoint.hpp"
 
+#include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Window.hpp"
 
+#include "Game/Game.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
@@ -37,7 +45,7 @@ void GameStateConstraints::OnEnter() noexcept {
     float x6 = x5 + 25.0f;
     float y6 = y5 - 110.0f;
     float radius = 25.0f;
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x1, y1}
                     , Velocity{}
                     , Acceleration{}
@@ -45,7 +53,7 @@ void GameStateConstraints::OnEnter() noexcept {
                     , PhysicsMaterial{0.0f, 0.0f}
                     , PhysicsDesc{}
                     )));
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position(x2, y2)
         , Velocity{}
         , Acceleration{}
@@ -56,7 +64,7 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
 
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x3, y3}
         , Velocity{}
         , Acceleration{}
@@ -67,7 +75,7 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
 
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x4, y4}
         , Velocity{}
         , Acceleration{}
@@ -79,7 +87,7 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableDrag(false);
 
 
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
@@ -90,7 +98,7 @@ void GameStateConstraints::OnEnter() noexcept {
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
 
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x6, y6}
         , Velocity{}
         , Acceleration{}
@@ -156,7 +164,7 @@ void GameStateConstraints::BeginFrame() noexcept {
 
 void GameStateConstraints::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
-        g_theApp->SetIsQuitting(true);
+        g_theApp<Game>->SetIsQuitting(true);
         return;
     }
     g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
@@ -246,12 +254,12 @@ void GameStateConstraints::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
 }
 
 void GameStateConstraints::Debug_AddBodyAtMouseCoords() noexcept {
-    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto& p = g_theInputSystem->GetMouseCoords();
     _new_body_positions.push_back(p);
 }
 
 void GameStateConstraints::Debug_ApplyImpulseAtMouseCoords() noexcept {
-    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto& p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
     _activeBody->ApplyImpulse(direction * 1000.0f);
@@ -345,9 +353,9 @@ void GameStateConstraints::Debug_ShowJointsUI() {
 }
 
 void GameStateConstraints::Debug_ShowBodyParametersUI(const RigidBody* const body) {
-    const auto acc = body->GetAcceleration();
-    const auto vel = body->GetVelocity();
-    const auto pos = body->GetPosition();
+    const auto& acc = body->GetAcceleration();
+    const auto& vel = body->GetVelocity();
+    const auto& pos = body->GetPosition();
     const auto aacc = body->GetAngularAccelerationDegrees();
     const auto avel = body->GetAngularVelocityDegrees();
     const auto apos = body->GetOrientationDegrees();

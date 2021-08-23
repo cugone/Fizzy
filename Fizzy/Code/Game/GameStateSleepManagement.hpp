@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Engine/Renderer/Camera2D.hpp"
+
+#include "Engine/Physics/PhysicsSystem.hpp"
+#include "Engine/Physics/RigidBody.hpp"
+
 #include "Game/IState.hpp"
 
 #include <guiddef.h>
@@ -29,6 +33,15 @@ private:
     void ShowDebugWindow();
     void ToggleShowDebugWindow() noexcept;
 
+    void FireProjectile() noexcept;
+
+    std::vector<RigidBody> _bodies{};
     mutable Camera2D _ui_camera{};
+    bool _isGravityEnabled = true;
+    bool _isDragEnabled = true;
+    bool _debug_click_adds_bodies = false;
     bool _show_debug_window = true;
+    bool _show_world_partition = true;
+    bool _show_collision = true;
+
 };

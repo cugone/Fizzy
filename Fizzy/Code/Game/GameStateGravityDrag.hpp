@@ -9,6 +9,7 @@
 
 #include "Engine/Renderer/Camera2D.hpp"
 #include "Engine/Physics/Particles/ParticleSystem.hpp"
+#include "Engine/Renderer/Mesh.hpp"
 
 #include "Game/IState.hpp"
 
