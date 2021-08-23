@@ -1,10 +1,22 @@
 #include "Game/GameStateGravityDrag.hpp"
 
+#include "Engine/Core/App.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
+
+#include "Engine/Physics/PhysicsSystem.hpp"
+#include "Engine/Physics/PhysicsTypes.hpp"
 #include "Engine/Physics/PhysicsUtils.hpp"
 #include "Engine/Physics/SpringJoint.hpp"
 
+#include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Window.hpp"
 
+#include "Engine/Input/InputSystem.hpp"
+#include "Engine/UI/UISystem.hpp"
+
+#include "Game/Game.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/GameConfig.hpp"
 
@@ -32,7 +44,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
     float y4 = y1;
     float x5 = x4 + 55.0f;
     float y5 = maxs.y + (radius * 4.0f);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x2, y2}
                     , Velocity{}
                     , Acceleration{}
@@ -42,7 +54,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x1, y1}
                     , Velocity{}
                     , Acceleration{}
@@ -52,7 +64,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x3, y3}
                 , Velocity{}
                 , Acceleration{}
@@ -62,7 +74,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                 )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x4, y4}
                 , Velocity{}
                 , Acceleration{}
@@ -72,7 +84,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
                 )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
@@ -110,7 +122,7 @@ void GameStateGravityDrag::BeginFrame() noexcept {
 
 void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
-        g_theApp->SetIsQuitting(true);
+        g_theApp<Game>->SetIsQuitting(true);
         return;
     }
     g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
@@ -129,25 +141,14 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
 }
 
 void GameStateGravityDrag::Render() const noexcept {
-    g_theRenderer->ResetModelViewProjection();
-    g_theRenderer->SetRenderTargetsToBackBuffer();
-    g_theRenderer->ClearDepthStencilBuffer();
-
-    g_theRenderer->ClearColor(Rgba::Black);
-
-    g_theRenderer->SetViewportAsPercent();
+    g_theRenderer->BeginRenderToBackbuffer();
 
     //2D View / HUD
-    const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
+    const auto ui_view_height = static_cast<float>(g_theGame->GetSettings().GetWindowHeight());
     const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
     const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
-    auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
-    auto ui_rightTop = Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
-    auto ui_nearFar = Vector2{0.0f, 1.0f};
-    _ui_camera.position = ui_view_half_extents;
-    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
-    g_theRenderer->SetCamera(_ui_camera);
+    g_theRenderer->BeginHUDRender(_ui_camera, ui_view_half_extents, ui_view_height);
 
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
     g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
@@ -162,7 +163,7 @@ void GameStateGravityDrag::EndFrame() noexcept {
         return;
     }
     for(const auto& pos : _new_body_positions) {
-        _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+        _bodies.push_back(RigidBody(RigidBodyDesc(
             pos
             , Vector2::ZERO
             , Vector2::ZERO
@@ -220,12 +221,12 @@ void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
 }
 
 void GameStateGravityDrag::Debug_AddBodyAtMouseCoords() noexcept {
-    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto& p = g_theInputSystem->GetMouseCoords();
     _new_body_positions.push_back(p);
 }
 
 void GameStateGravityDrag::Debug_ApplyImpulseAtMouseCoords() noexcept {
-    const auto p = g_theInputSystem->GetMouseCoords();
+    const auto& p = g_theInputSystem->GetMouseCoords();
     const auto point_on_body = MathUtils::CalcClosestPoint(p, *_activeBody->GetCollider());
     const auto direction = (point_on_body - p).GetNormalize();
     _activeBody->ApplyImpulse(direction * 150.0f);
@@ -281,9 +282,9 @@ void GameStateGravityDrag::Debug_ShowBodiesUI() {
 }
 
 void GameStateGravityDrag::Debug_ShowBodyParametersUI(const RigidBody* const body) {
-    const auto acc = body->GetAcceleration();
-    const auto vel = body->GetVelocity();
-    const auto pos = body->GetPosition();
+    const auto& acc = body->GetAcceleration();
+    const auto& vel = body->GetVelocity();
+    const auto& pos = body->GetPosition();
     const auto aacc = body->GetAngularAccelerationDegrees();
     const auto avel = body->GetAngularVelocityDegrees();
     const auto apos = body->GetOrientationDegrees();

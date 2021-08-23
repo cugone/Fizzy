@@ -1,6 +1,13 @@
 #include "Game/GameStateSleepManagement.hpp"
 
-#include "Game/GameCommon.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Core/App.hpp"
+
+#include "Engine/Input/InputSystem.hpp"
+#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/UI/UISystem.hpp"
+
+#include "Game/Game.hpp"
 #include "Game/GameConfig.hpp"
 
 void GameStateSleepManagement::OnEnter() noexcept {
@@ -27,7 +34,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
     float x5 = x4 + 55.0f;
     float y5 = y1;
     float radius = 25.0f;
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x2, y2}
         , Velocity{}
         , Acceleration{}
@@ -37,7 +44,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x1, y1}
         , Velocity{}
         , Acceleration{}
@@ -47,7 +54,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
     )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(false);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x3, y3}
         , Velocity{}
         , Acceleration{}
@@ -57,7 +64,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
     )));
     _bodies.back().EnableGravity(false);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x4, y4}
         , Velocity{}
         , Acceleration{}
@@ -67,7 +74,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
     )));
     _bodies.back().EnableGravity(true);
     _bodies.back().EnableDrag(true);
-    _bodies.push_back(RigidBody(g_thePhysicsSystem, RigidBodyDesc(
+    _bodies.push_back(RigidBody(RigidBodyDesc(
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
@@ -101,7 +108,7 @@ void GameStateSleepManagement::BeginFrame() noexcept {
 
 void GameStateSleepManagement::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSeconds) noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::Esc)) {
-        g_theApp->SetIsQuitting(true);
+        g_theApp<Game>->SetIsQuitting(true);
         return;
     }
     g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
