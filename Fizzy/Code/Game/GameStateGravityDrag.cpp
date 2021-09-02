@@ -53,7 +53,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
         Position{x2, y2}
                     , Velocity{}
                     , Acceleration{}
-        , new ColliderCircle(Position{x2, y2}, radius)
+        , std::make_unique<ColliderCircle>(Position{x2, y2}, radius)
                     , PhysicsMaterial{0.0f, 0.0f}
                     , PhysicsDesc{0.0f}
                     )));
@@ -63,7 +63,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
         Position{x1, y1}
                     , Velocity{}
                     , Acceleration{}
-                    , new ColliderCircle(Vector2(x1, y1), radius)
+                    , std::make_unique<ColliderCircle>(Vector2(x1, y1), radius)
                     ,PhysicsMaterial{0.0f, 0.0f}
                     ,PhysicsDesc{}
                     )));
@@ -73,7 +73,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
         Position{x3, y3}
                 , Velocity{}
                 , Acceleration{}
-                , new ColliderCircle(Vector2(x3, y3), radius)
+                , std::make_unique<ColliderCircle>(Vector2(x3, y3), radius)
                 , PhysicsMaterial{0.0f, 0.0f}
                 , PhysicsDesc{}
                 )));
@@ -83,7 +83,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
         Position{x4, y4}
                 , Velocity{}
                 , Acceleration{}
-                ,new ColliderCircle(Vector2(x4, y4), radius)
+                , std::make_unique<ColliderCircle>(Vector2(x4, y4), radius)
                 , PhysicsMaterial{0.0f, 0.0f}
                 , PhysicsDesc{}
                 )));
@@ -93,7 +93,7 @@ void GameStateGravityDrag::OnEnter() noexcept {
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
-        , new ColliderAABB(Vector2(x5, y5), Vector2{5.0f * radius, 2.5f * radius})
+        , std::make_unique<ColliderCircle>(Vector2(x5, y5), radius)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{1.0f}
     )));
@@ -111,17 +111,21 @@ void GameStateGravityDrag::OnEnter() noexcept {
     }
     g_thePhysicsSystem->Enable(true);
     g_thePhysicsSystem->Debug_ShowCollision(true);
+    g_thePhysicsSystem->Debug_ShowContacts(true);
 
+    _flamePS = std::make_unique<ParticleSystem>();
     _flamePS->RegisterEffectsFromFolder("Data/ParticleEffects");
     _flame_effect = std::make_unique<ParticleEffect>("flame_emission");
-    _flame_effect->position = Vector3{Vector2{screenX, screenY}, 0.0f};
-    _flame_effect->SetPlay(true);
+    _flame_effect->position = Vector3{Vector2{x1, y1}, 0.0f};
+    _flame_effect->SetPlay(false);
 }
 
 void GameStateGravityDrag::OnExit() noexcept {
     _flame_effect->SetPlay(false);
+    _flamePS.reset(nullptr);
     g_thePhysicsSystem->RemoveAllObjectsImmediately();
     g_thePhysicsSystem->Debug_ShowCollision(false);
+    g_thePhysicsSystem->Debug_ShowContacts(false);
     g_thePhysicsSystem->Enable(false);
     _bodies.clear();
 }
@@ -141,7 +145,6 @@ void GameStateGravityDrag::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
     }
     g_thePhysicsSystem->Debug_ShowWorldPartition(_show_world_partition);
     g_thePhysicsSystem->Debug_ShowCollision(_show_collision);
-    g_theRenderer->UpdateGameTime(deltaSeconds);
     if(_show_debug_window) {
         ShowDebugWindow();
     }
@@ -166,10 +169,14 @@ void GameStateGravityDrag::Render() const noexcept {
     g_theRenderer->BeginHUDRender(_ui_camera, ui_view_half_extents, ui_view_height);
 
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
-    g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
-
-    if(!_debug_click_adds_bodies) {
+    if(!g_theInputSystem->IsKeyDown(KeyCode::Shift)) {
         g_theRenderer->DrawFilledCircle2D(_debug_point_on_body, 5.0f);
+    } else {
+        g_theRenderer->DrawFilledCircle2D(g_theInputSystem->GetMouseCoords(), 5.0f);
+    }
+    _flame_effect->Render();
+    if(_show_debug_window) {
+        _flame_effect->DebugRender();
     }
 }
 
@@ -183,7 +190,7 @@ void GameStateGravityDrag::EndFrame() noexcept {
             pos
             , Vector2::ZERO
             , Vector2::ZERO
-            , new ColliderOBB(pos, Vector2{25.0f,25.0f})
+            , std::make_unique<ColliderOBB>(pos, Vector2{25.0f,25.0f})
             , PhysicsMaterial{}
             , PhysicsDesc{}
         )));
@@ -211,13 +218,36 @@ void GameStateGravityDrag::HandleKeyboardInput() noexcept {
     if(g_theInputSystem->WasKeyJustPressed(KeyCode::F4)) {
         g_theUISystem->ToggleImguiDemoWindow();
     }
+    if(g_theInputSystem->WasKeyJustPressed(KeyCode::Enter)) {
+        _flame_effect->SetPlay(true);
+    }
 }
 
 void GameStateGravityDrag::HandleMouseInput() noexcept {
     if(g_theUISystem->WantsInputMouseCapture()) {
         return;
     }
+    if(Debug_SelectBody()) {
+        return;
+    }
     Debug_AddBodyOrApplyForceAtMouseCoords();
+}
+
+bool GameStateGravityDrag::Debug_SelectBody() noexcept {
+    if(!(g_theInputSystem->WasKeyJustPressed(KeyCode::RButton))) {
+        return false;
+    }
+    const auto s = _bodies.size();
+    for(std::size_t i{0u}; i < s; ++i) {
+        const auto body = &_bodies[i];
+        const auto& p = g_theInputSystem->GetMouseCoords();
+        if(MathUtils::IsPointInside(body->GetBounds(), p)) {
+            _activeBody = body;
+            _selected_body = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 void GameStateGravityDrag::ToggleShowDebugWindow() noexcept {
@@ -225,14 +255,11 @@ void GameStateGravityDrag::ToggleShowDebugWindow() noexcept {
 }
 
 void GameStateGravityDrag::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
-    if(_debug_click_adds_bodies) {
-        if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
-            Debug_AddBodyAtMouseCoords();
-        }
-    } else {
-        if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
-            Debug_ApplyImpulseAtMouseCoords();
-        }
+    if(g_theInputSystem->IsKeyDown(KeyCode::Shift) && g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+        Debug_AddBodyAtMouseCoords();
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
+        Debug_ApplyImpulseAtMouseCoords();
     }
 }
 
@@ -250,37 +277,11 @@ void GameStateGravityDrag::Debug_ApplyImpulseAtMouseCoords() noexcept {
 
 void GameStateGravityDrag::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
-        ImGui::Checkbox("Click adds bodies", &_debug_click_adds_bodies);
         ImGui::Checkbox("Show Quadtree", &_show_world_partition);
         ImGui::Checkbox("Show Collision", &_show_collision);
-        Debug_SelectedBodiesComboBoxUI();
         Debug_ShowBodiesUI();
     }
     ImGui::End();
-}
-
-void GameStateGravityDrag::Debug_SelectedBodiesComboBoxUI() {
-    const auto b_size = _bodies.size();
-    std::vector<std::string> items{};
-    items.resize(b_size);
-    for(std::size_t i = 0u; i < b_size; ++i) {
-        items[i] = std::string{"Body "} + std::to_string(i);
-    }
-    std::string current_item = items[_selected_body];
-    if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
-        for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
-            bool is_selected = current_item == *it;
-            if(ImGui::Selectable((*it).c_str(), is_selected)) {
-                current_item = *it;
-                _selected_body = std::distance(std::cbegin(items), it);
-            }
-            if(is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndCombo();
-    }
-    _activeBody = &_bodies[_selected_body];
 }
 
 void GameStateGravityDrag::Debug_ShowBodiesUI() {

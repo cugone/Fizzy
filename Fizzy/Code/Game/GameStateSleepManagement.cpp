@@ -38,7 +38,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
         Position{x2, y2}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Position{x2, y2}, radius)
+        , std::make_unique<ColliderCircle>(Position{x2, y2}, radius)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{0.0f}
     )));
@@ -48,7 +48,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
         Position{x1, y1}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x1, y1), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x1, y1), radius)
         , PhysicsMaterial{0.0f, 0.0f, 0.0f}
         , PhysicsDesc{}
     )));
@@ -58,7 +58,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
         Position{x3, y3}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x3, y3), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x3, y3), radius)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{}
     )));
@@ -68,7 +68,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
         Position{x4, y4}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x4, y4), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x4, y4), radius)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{}
     )));
@@ -78,7 +78,7 @@ void GameStateSleepManagement::OnEnter() noexcept {
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
-        , new ColliderPolygon(3, Vector2(x5, y5), Vector2{radius, radius} *2.0f, 0.0f)
+        , std::make_unique<ColliderPolygon>(3, Vector2(x5, y5), Vector2{radius, radius} *2.0f, 0.0f)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{}
     )));
@@ -124,26 +124,15 @@ void GameStateSleepManagement::Update([[maybe_unused]] TimeUtils::FPSeconds delt
 }
 
 void GameStateSleepManagement::Render() const noexcept {
-    g_theRenderer->ResetModelViewProjection();
-    g_theRenderer->SetRenderTargetsToBackBuffer();
-    g_theRenderer->ClearDepthStencilBuffer();
-
-    g_theRenderer->ClearColor(Rgba::Black);
-
-    g_theRenderer->SetViewportAsPercent();
-
+    g_theRenderer->BeginRenderToBackbuffer();
+    
     //2D View / HUD
-    const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
+    const auto& ui_view_height = static_cast<float>(g_theGame->GetSettings().GetWindowHeight());
     const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
     const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
-    auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
-    auto ui_rightTop = Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
-    auto ui_nearFar = Vector2{0.0f, 1.0f};
-    _ui_camera.position = ui_view_half_extents;
-    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
-    g_theRenderer->SetCamera(_ui_camera);
 
+    g_theRenderer->BeginHUDRender(_ui_camera, ui_view_half_extents, ui_view_height);
 }
 
 void GameStateSleepManagement::EndFrame() noexcept {
@@ -164,6 +153,9 @@ void GameStateSleepManagement::ToggleShowDebugWindow() noexcept {
 }
 
 void GameStateSleepManagement::FireProjectile() noexcept {
-    
+    _bodies.emplace_back(RigidBody{RigidBodyDesc{
+        Position{}, Velocity{}, Acceleration{}, std::make_unique<ColliderCircle>(Position{}, 5.0f), PhysicsMaterial{}, PhysicsDesc{}
+        }});
+    g_thePhysicsSystem->AddObject(&_bodies.back());
 }
 

@@ -49,7 +49,7 @@ void GameStateConstraints::OnEnter() noexcept {
         Position{x1, y1}
                     , Velocity{}
                     , Acceleration{}
-                    ,new ColliderCircle(Vector2(x1, y1), radius)
+                    , std::make_unique<ColliderCircle>(Vector2(x1, y1), radius)
                     , PhysicsMaterial{0.0f, 0.0f}
                     , PhysicsDesc{}
                     )));
@@ -57,7 +57,7 @@ void GameStateConstraints::OnEnter() noexcept {
         Position(x2, y2)
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x2, y2), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x2, y2), radius)
         , PhysicsMaterial{0.0f, 0.0f}
         , PhysicsDesc{0.0f}
     )));
@@ -68,7 +68,7 @@ void GameStateConstraints::OnEnter() noexcept {
         Position{x3, y3}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x3, y3), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x3, y3), radius)
         , PhysicsMaterial{0.0f, 0.0f, 0.0f}
         , PhysicsDesc{0.0f}
     )));
@@ -79,7 +79,7 @@ void GameStateConstraints::OnEnter() noexcept {
         Position{x4, y4}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x4, y4), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x4, y4), radius)
         , PhysicsMaterial{0.0f, 0.0f, 5.0f}
         , PhysicsDesc{0.0f}
     )));
@@ -91,7 +91,7 @@ void GameStateConstraints::OnEnter() noexcept {
         Position{x5, y5}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x5, y5), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x5, y5), radius)
         , PhysicsMaterial{0.0f, 0.0f, 0.0f}
         , PhysicsDesc{0.0f}
     )));
@@ -102,7 +102,7 @@ void GameStateConstraints::OnEnter() noexcept {
         Position{x6, y6}
         , Velocity{}
         , Acceleration{}
-        , new ColliderCircle(Vector2(x6, y6), radius)
+        , std::make_unique<ColliderCircle>(Vector2(x6, y6), radius)
         , PhysicsMaterial{0.0f, 0.0f, 10.0f}
         , PhysicsDesc{0.0f}
     )));
@@ -183,33 +183,21 @@ void GameStateConstraints::Update([[maybe_unused]] TimeUtils::FPSeconds deltaSec
 }
 
 void GameStateConstraints::Render() const noexcept {
-    g_theRenderer->ResetModelViewProjection();
-    g_theRenderer->SetRenderTargetsToBackBuffer();
-    g_theRenderer->ClearDepthStencilBuffer();
-
-    g_theRenderer->ClearColor(Rgba::Black);
-
-    g_theRenderer->SetViewportAsPercent();
+    g_theRenderer->BeginRenderToBackbuffer();
 
     //2D View / HUD
-    const auto& ui_view_height = currentGraphicsOptions.WindowHeight;
+    const auto ui_view_height = static_cast<float>(g_theGame->GetSettings().GetWindowHeight());
     const auto ui_view_width = ui_view_height * _ui_camera.GetAspectRatio();
     const auto ui_view_extents = Vector2{ui_view_width, ui_view_height};
     const auto ui_view_half_extents = ui_view_extents * 0.5f;
-    auto ui_leftBottom = Vector2{-ui_view_half_extents.x, ui_view_half_extents.y};
-    auto ui_rightTop = Vector2{ui_view_half_extents.x, -ui_view_half_extents.y};
-    auto ui_nearFar = Vector2{0.0f, 1.0f};
-    _ui_camera.position = ui_view_half_extents;
-    _ui_camera.SetupView(ui_leftBottom, ui_rightTop, ui_nearFar, MathUtils::M_16_BY_9_RATIO);
-    g_theRenderer->SetCamera(_ui_camera);
+    g_theRenderer->BeginHUDRender(_ui_camera, ui_view_half_extents, ui_view_height);
 
-    g_theRenderer->DrawAxes(static_cast<float>((std::max)(ui_view_extents.x, ui_view_extents.y)), false);
     g_theRenderer->SetMaterial(g_theRenderer->GetMaterial("__2D"));
-
-    if(!_debug_click_adds_bodies) {
+    if(!g_theInputSystem->IsKeyDown(KeyCode::Shift)) {
         g_theRenderer->DrawFilledCircle2D(_debug_point_on_body, 5.0f);
+    } else {
+        g_theRenderer->DrawFilledCircle2D(g_theInputSystem->GetMouseCoords(), 5.0f);
     }
-
 }
 
 void GameStateConstraints::EndFrame() noexcept {
@@ -242,14 +230,11 @@ void GameStateConstraints::ToggleShowDebugWindow() noexcept {
 }
 
 void GameStateConstraints::Debug_AddBodyOrApplyForceAtMouseCoords() noexcept {
-    if(_debug_click_adds_bodies) {
-        if(g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
-            Debug_AddBodyAtMouseCoords();
-        }
-    } else {
-        if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
-            Debug_ApplyImpulseAtMouseCoords();
-        }
+    if(g_theInputSystem->IsKeyDown(KeyCode::Shift) && g_theInputSystem->WasKeyJustPressed(KeyCode::LButton)) {
+        Debug_AddBodyAtMouseCoords();
+    }
+    if(g_theInputSystem->IsKeyDown(KeyCode::LButton)) {
+        Debug_ApplyImpulseAtMouseCoords();
     }
 }
 
@@ -269,39 +254,10 @@ void GameStateConstraints::ShowDebugWindow() {
     if(ImGui::Begin("Debug Window", &_show_debug_window)) {
         ImGui::Checkbox("Show Collision", &_show_collision);
         ImGui::Checkbox("Show Joints", &_show_joints);
-        Debug_SelectedBodiesComboBoxUI();
         Debug_ShowBodiesUI();
         Debug_ShowJointsUI();
     }
     ImGui::End();
-}
-
-void GameStateConstraints::Debug_SelectedBodiesComboBoxUI() {
-    const auto b_size = _bodies.size();
-    const auto distance_between_b2b3 = MathUtils::CalcDistance(_bodies[2].GetPosition(), _bodies[3].GetPosition());
-    ImGui::Text("B2B3 Distance: %.02f", distance_between_b2b3);
-    const auto distance_between_b4b5 = MathUtils::CalcDistance(_bodies[4].GetPosition(), _bodies[5].GetPosition());
-    ImGui::Text("B4B5 Distance: %.02f", distance_between_b4b5);
-    std::vector<std::string> items{};
-    items.resize(b_size);
-    for(std::size_t i = 0u; i < b_size; ++i) {
-        items[i] = std::string{"Body "} + std::to_string(i);
-    }
-    std::string current_item = items[_selected_body];
-    if(ImGui::BeginCombo("Selected Body", current_item.c_str())) {
-        for(auto it = std::cbegin(items); it != std::cend(items); ++it) {
-            bool is_selected = current_item == *it;
-            if(ImGui::Selectable((*it).c_str(), is_selected)) {
-                current_item = *it;
-                _selected_body = std::distance(std::cbegin(items), it);
-            }
-            if(is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndCombo();
-    }
-    _activeBody = &_bodies[_selected_body];
 }
 
 void GameStateConstraints::Debug_ShowBodiesUI() {

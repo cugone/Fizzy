@@ -46,13 +46,13 @@ private:
     void ShowDebugWindow();
     void ToggleShowDebugWindow() noexcept;
 
+    bool Debug_SelectBody() noexcept;
     void Debug_AddBodyOrApplyForceAtMouseCoords() noexcept;
     void Debug_AddBodyAtMouseCoords() noexcept;
     void Debug_ApplyImpulseAtMouseCoords() noexcept;
     
     void Debug_ShowBodiesUI();
     void Debug_ShowBodyParametersUI(const RigidBody* const body);
-    void Debug_SelectedBodiesComboBoxUI();
 
     std::vector<RigidBody> _bodies{};
     std::vector<Vector2> _new_body_positions{};
@@ -64,8 +64,7 @@ private:
     RigidBody* _activeBody{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
-    bool _debug_click_adds_bodies = false;
     bool _show_debug_window = true;
-    bool _show_world_partition = true;
+    bool _show_world_partition = false;
     bool _show_collision = true;
 };

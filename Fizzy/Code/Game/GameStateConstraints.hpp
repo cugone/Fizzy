@@ -46,7 +46,6 @@ private:
     void Debug_AddBodyAtMouseCoords() noexcept;
     void Debug_ApplyImpulseAtMouseCoords() noexcept;
 
-    void Debug_SelectedBodiesComboBoxUI();
     void Debug_ShowJointsUI();
     void Debug_ShowBodiesUI();
     void Debug_ShowBodyParametersUI(const RigidBody* const body);
@@ -60,9 +59,8 @@ private:
     Joint* _activeJoint{};
     bool _isGravityEnabled = true;
     bool _isDragEnabled = true;
-    bool _debug_click_adds_bodies = false;
     bool _show_debug_window = true;
-    bool _show_world_partition = true;
+    bool _show_world_partition = false;
     bool _show_collision = true;
     bool _show_joints = true;
     static inline std::size_t  _selected_body = 0u;

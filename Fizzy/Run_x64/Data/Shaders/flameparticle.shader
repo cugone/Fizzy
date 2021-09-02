@@ -7,7 +7,7 @@
     </raster>
     <blends>
         <blend enable="true">
-            <color src="src_alpha" dest="one" op="add" />
+            <color src="src_alpha" dest="inv_src_alpha" op="add" />
         </blend>
     </blends>
     <depth enable="false" writable="false" />
